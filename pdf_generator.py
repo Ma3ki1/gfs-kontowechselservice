@@ -1,13 +1,16 @@
+# -*- coding: utf-8 -*-
 """GFS-branded PDF confirmation using fpdf2."""
 from fpdf import FPDF
 from datetime import datetime
 import io
 
-def generate_confirmation_pdf(state: dict) -> bytes:
+
+def generate_confirmation_pdf(state):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=20)
 
+    # Header bar
     pdf.set_fill_color(26, 26, 46)
     pdf.rect(0, 0, 210, 38, "F")
     pdf.set_fill_color(26, 92, 82)
@@ -21,8 +24,10 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "", 11)
     pdf.set_xy(15, 22)
-    pdf.cell(0, 8, "Kontowechselbest\u00e4tigung", ln=True)
+    titel = "Kontowechselbest" + chr(228) + "tigung"
+    pdf.cell(0, 8, titel, ln=True)
 
+    # Body
     pdf.set_y(50)
     pdf.set_text_color(30, 30, 30)
     pdf.set_font("Helvetica", "", 10)
@@ -43,29 +48,36 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     _row(pdf, "Wechseldatum", state.get("wechseldatum_str", "-"))
     pdf.ln(4)
 
+    # Partners
     partners = state.get("partners", [])
-    _section(pdf, "\u00dcbertragene Zahlungspartner (" + str(len(partners)) + ")")
+    section_title = chr(220) + "bertragene Zahlungspartner (" + str(len(partners)) + ")"
+    _section(pdf, section_title)
     for p in partners:
         name = p.get("name", "?")
         amount = p.get("amount", 0)
         rhythm = p.get("rhythm", "monatlich")
         pdf.set_font("Helvetica", "", 9)
-        pdf.cell(0, 6, "  - " + name + "  |  " + format(amount, ".2f") + " EUR  |  " + rhythm, ln=True)
+        line = "  - " + name + "  |  " + format(amount, ".2f") + " EUR  |  " + rhythm
+        pdf.cell(0, 6, line, ln=True)
 
     if not partners:
         pdf.set_font("Helvetica", "I", 9)
-        pdf.cell(0, 6, "  Keine Zahlungspartner \u00fcbertragen.", ln=True)
+        no_partners = "  Keine Zahlungspartner " + chr(252) + "bertragen."
+        pdf.cell(0, 6, no_partners, ln=True)
 
     pdf.ln(8)
+
+    # Legal footer
     pdf.set_draw_color(200, 200, 200)
     pdf.line(15, pdf.get_y(), 195, pdf.get_y())
     pdf.ln(4)
     pdf.set_font("Helvetica", "", 7)
     pdf.set_text_color(120, 120, 120)
+    addr = "Global Finance Solutions SE, Leopoldstr. 28, 80802 M" + chr(252) + "nchen. "
     pdf.multi_cell(0, 4,
-        "Rechtsgrundlage: Zahlungskontengesetz (ZKG) Paragraphen 20-26, "
+        "Rechtsgrundlage: Zahlungskontengesetz (ZKG) " + chr(167) + chr(167) + " 20-26, "
         "EU-Richtlinie 2014/92/EU.\n"
-        "Global Finance Solutions SE, Leopoldstr. 28, 80802 M\u00fcnchen. "
+        + addr +
         "BaFin-Registernr.: 123456.\n"
         "Konzept & Prototyp: metafinanz Informationssysteme GmbH (Allianz Gruppe)."
     )
@@ -74,11 +86,13 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     pdf.output(buf)
     return buf.getvalue()
 
+
 def _section(pdf, title):
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(26, 92, 82)
     pdf.cell(0, 8, title, ln=True)
     pdf.set_text_color(30, 30, 30)
+
 
 def _row(pdf, label, value):
     pdf.set_font("Helvetica", "", 9)
