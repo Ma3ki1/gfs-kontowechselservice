@@ -21,7 +21,7 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "", 11)
     pdf.set_xy(15, 22)
-    pdf.cell(0, 8, "Kontowechselbestaetigung", ln=True)
+    pdf.cell(0, 8, "Kontowechselbest\u00e4tigung", ln=True)
 
     pdf.set_y(50)
     pdf.set_text_color(30, 30, 30)
@@ -44,7 +44,7 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     pdf.ln(4)
 
     partners = state.get("partners", [])
-    _section(pdf, "Uebertragene Zahlungspartner (" + str(len(partners)) + ")")
+    _section(pdf, "\u00dcbertragene Zahlungspartner (" + str(len(partners)) + ")")
     for p in partners:
         name = p.get("name", "?")
         amount = p.get("amount", 0)
@@ -54,7 +54,7 @@ def generate_confirmation_pdf(state: dict) -> bytes:
 
     if not partners:
         pdf.set_font("Helvetica", "I", 9)
-        pdf.cell(0, 6, "  Keine Zahlungspartner uebertragen.", ln=True)
+        pdf.cell(0, 6, "  Keine Zahlungspartner \u00fcbertragen.", ln=True)
 
     pdf.ln(8)
     pdf.set_draw_color(200, 200, 200)
@@ -65,7 +65,7 @@ def generate_confirmation_pdf(state: dict) -> bytes:
     pdf.multi_cell(0, 4,
         "Rechtsgrundlage: Zahlungskontengesetz (ZKG) Paragraphen 20-26, "
         "EU-Richtlinie 2014/92/EU.\n"
-        "Global Finance Solutions SE, Leopoldstr. 28, 80802 Muenchen. "
+        "Global Finance Solutions SE, Leopoldstr. 28, 80802 M\u00fcnchen. "
         "BaFin-Registernr.: 123456.\n"
         "Konzept & Prototyp: metafinanz Informationssysteme GmbH (Allianz Gruppe)."
     )
