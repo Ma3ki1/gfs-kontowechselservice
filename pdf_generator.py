@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """GFS-branded PDF confirmation using fpdf2."""
 from fpdf import FPDF
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4

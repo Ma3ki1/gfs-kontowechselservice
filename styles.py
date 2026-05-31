@@ -220,6 +220,65 @@ div[data-testid="stProgress"] > div > div > div { background-color: #e8a020 !imp
 .intro-cta-wrapper { text-align: center; margin-top: 1rem; margin-bottom: 2rem; }
 .intro-cta-wrapper button { font-size: 1.1rem !important; padding: .8rem 2.5rem !important; border-radius: 50px !important; }
 .compliance-pill { display: inline-block; background: #eaecee; color: #555; border-radius: 50px; padding: .2rem .7rem; font-size: .7rem; font-weight: 600; margin-right: .5rem; margin-top: .5rem; }
+
+/* --- FEATURE 1 & 2: Warnings & Chat --- */
+.completeness-warning { border-left: 4px solid #e8a020; background: #fffaf0; padding: 1rem; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; }
+.gabi-warning { background: #c0392b; color: #fff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-weight: 600; text-align: center; }
+
+/* Chat Container Positioning via :has() */
+div[data-testid="stVerticalBlock"]:has(.chat-marker) {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    width: 320px !important;
+    background: #111827 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+    padding: 1rem !important;
+    border: 1px solid #374151;
+    transition: all 0.3s ease;
+}
+
+div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) {
+    width: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.chat-marker { display: none; }
+
+.chat-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #374151; padding-bottom: .8rem; margin-bottom: 1rem;
+}
+.chat-title { color: #2ecc71; font-weight: 600; font-size: .95rem; display: flex; align-items: center; gap: 8px; }
+.chat-dot { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 5px #2ecc71; }
+
+.chat-msg { margin-bottom: .8rem; padding: .6rem .8rem; border-radius: 8px; font-size: .85rem; line-height: 1.4; max-width: 90%; clear: both; }
+.chat-bot { background: #1e293b; color: #f8fafc; float: left; border-bottom-left-radius: 2px; }
+.chat-user { background: #e8a020; color: #1a1a2e; float: right; border-bottom-right-radius: 2px; font-weight: 500; }
+.chat-clear { clear: both; margin-bottom: 1rem; }
+
+/* Override streamlit buttons inside chat */
+div[data-testid="stVerticalBlock"]:has(.chat-marker) button {
+    width: 100% !important; border-radius: 6px !important;
+    padding: .4rem !important; min-height: 0 !important;
+    font-size: .8rem !important; border: 1px solid #475569 !important;
+    background: #1e293b !important; color: #f8fafc !important;
+}
+div[data-testid="stVerticalBlock"]:has(.chat-marker) button:hover {
+    border-color: #2ecc71 !important; color: #2ecc71 !important;
+}
+/* Main floating button */
+div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) button {
+    background: #1a5c52 !important; border: none !important; color: white !important;
+    border-radius: 50px !important; padding: .6rem 1.2rem !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; font-size: .9rem !important;
+    font-weight: 600 !important;
+}
 </style>
 """
 

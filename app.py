@@ -51,7 +51,8 @@ def init_state():
         sim_done=False, nps_score=None, demo_mode=False,
         start_time=None, end_time=None,
         active_persona=None, view_mode="kunde",
-        sim_task_idx=0  # For Step 4 progress tracking
+        sim_task_idx=0,  # For Step 4 progress tracking
+        warning_dismissed=False, chat_open=False, chat_stage="init"
     )
     for k, v in d.items():
         if k not in st.session_state:
@@ -109,6 +110,9 @@ def apply_persona(persona_id):
     st.session_state.nps_score = None
     st.session_state.end_time = None
     st.session_state.step = 1
+    st.session_state.warning_dismissed = False
+    st.session_state.chat_open = False
+    st.session_state.chat_stage = "init"
     
     st.session_state["s1_name_input"] = cust["name"]
     st.session_state["s1_iban_input"] = format_iban(cust["iban_alt"])
@@ -545,12 +549,45 @@ def page_step2():
         kennt aber nur 12-15 bewusst. Unsere KI erkennt alle.</div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Gabi warning banner
-    if st.session_state.active_persona == "gabi" and not is_berater:
-        st.markdown(
-            '<div class="warning-banner"><strong>Kritische Zahlungen erkannt</strong> '
-            '&mdash; diese werden bevorzugt behandelt und zuerst umgestellt.</div>',
-            unsafe_allow_html=True)
+    # Vergessen-Warnung
+    if not is_berater and not st.session_state.warning_dismissed:
+        missing_insurance = not any(c in p["name"].lower() or c in p["category"].lower() for p in partners for c in ["versicherung", "haftpflicht", "kfz", "aok", "allianz", "huk"])
+        missing_streaming = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["netflix", "spotify", "disney", "prime", "apple"])
+        missing_utility = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["strom", "gas", "stadtwerke", "e.on", "swm"])
+        missing_miete = not any("miete" in p["name"].lower() or "miete" in p["sepa_ref"].lower() for p in partners)
+
+        if st.session_state.active_persona == "gabi" and missing_miete:
+            st.markdown('<div class="gabi-warning">Achtung: Keine Mietzahlung erkannt.<br/>Falls Sie zur Miete wohnen, ist dies Ihre kritischste Zahlung &mdash; bitte f&uuml;gen Sie diese manuell hinzu.</div>', unsafe_allow_html=True)
+        elif len(partners) < 8 or missing_insurance or missing_streaming or missing_utility:
+            warning_html = '<div class="completeness-warning"><strong>Vollst&auml;ndigkeitspr&uuml;fung &mdash; Bitte pr&uuml;fen</strong><br/><br/>'
+            if len(partners) < 8:
+                warning_html += f'Bei Ihrem Profil wurden {len(partners)} Zahlungspartner erkannt. Der durchschnittliche Kunde hat 23 Partner.<br/>Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
+            else:
+                warning_html += 'Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
+            warning_html += '</div>'
+            st.markdown(warning_html, unsafe_allow_html=True)
+            
+            st.write("Häufig vergessene Kategorien:")
+            if missing_insurance or len(partners) < 8:
+                if st.checkbox("Versicherungen (Haftpflicht, Hausrat, KFZ)", key="w_ins"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if missing_streaming or len(partners) < 8:
+                if st.checkbox("Streaming-Dienste (Netflix, Spotify, Disney+)", key="w_str"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if missing_utility or len(partners) < 8:
+                if st.checkbox("Strom / Gas / Stadtwerke", key="w_util"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if len(partners) < 8:
+                if st.checkbox("Fitness / Sport-Abonnements", key="w_fit"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+                if st.checkbox("Zeitschriften / digitale Abonnements", key="w_zeit"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+                if st.checkbox("Sparpläne oder Wertpapierdepot", key="w_spar"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+
+            if st.button("Alles vollständig — weiter", key="w_dismiss"):
+                st.session_state.warning_dismissed = True
+                st.rerun()
 
     partners = st.session_state.partners
     
@@ -655,7 +692,7 @@ def page_step2():
                         '</div>', unsafe_allow_html=True)
 
         # Manual add via tabs
-        st.markdown('<p class="section-heading">Zahlungspartner manuell hinzuf\u00fcgen:</p>', unsafe_allow_html=True)
+        st.markdown('<p id="manuelle-erfassung" class="section-heading">Zahlungspartner manuell hinzuf\u00fcgen:</p>', unsafe_allow_html=True)
         tab_da, tab_ls = st.tabs(["Dauerauftrag", "Lastschriftmandat"])
 
         with tab_da:
@@ -1010,6 +1047,71 @@ def page_step5():
             del st.session_state[k]
         st.rerun()
 
+# ── Chat Widget Mockup ───────────────────────────────────────────────────────
+def render_chat_widget():
+    if st.session_state.step not in [2, 3, 4] or st.session_state.view_mode == "berater":
+        return
+
+    st.markdown(f'<div class="chat-marker {"chat-closed" if not st.session_state.chat_open else ""}"></div>', unsafe_allow_html=True)
+    
+    if not st.session_state.chat_open:
+        if st.button("💬 GFS Assistent", key="chat_open_btn"):
+            st.session_state.chat_open = True
+            st.session_state.chat_stage = "init"
+            st.rerun()
+    else:
+        st.markdown('<div class="chat-header"><div class="chat-title"><div class="chat-dot"></div>GFS Assistent</div></div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="chat-msg chat-bot">Guten Tag! Ich bin Ihr digitaler GFS-Assistent.<br/>Kann ich Ihnen beim Kontowechsel helfen?</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+        
+        if st.session_state.chat_stage == "init":
+            if st.button("Ja, ich habe eine Frage", key="c_btn_ja"):
+                st.session_state.chat_stage = "topics"
+                st.rerun()
+            if st.button("Nein, danke", key="c_btn_nein"):
+                st.session_state.chat_open = False
+                st.rerun()
+                
+        if st.session_state.chat_stage in ["topics", "topic_partner", "topic_dsgvo", "topic_zeit", "topic_tech"]:
+            st.markdown('<div class="chat-msg chat-user">Ja, ich habe eine Frage</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="chat-msg chat-bot">Welches Thema kann ich klären?</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            
+            if st.session_state.chat_stage == "topics":
+                if st.button("Meine Zahlungspartner", key="c_btn_t1"): st.session_state.chat_stage = "topic_partner"; st.rerun()
+                if st.button("Datenschutz", key="c_btn_t2"): st.session_state.chat_stage = "topic_dsgvo"; st.rerun()
+                if st.button("Zeitplan", key="c_btn_t3"): st.session_state.chat_stage = "topic_zeit"; st.rerun()
+                if st.button("Technische Frage", key="c_btn_t4"): st.session_state.chat_stage = "topic_tech"; st.rerun()
+                
+        if st.session_state.chat_stage == "topic_partner":
+            st.markdown('<div class="chat-msg chat-user">Meine Zahlungspartner</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="chat-msg chat-bot">Haben Sie einen Partner nicht gefunden?</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            if st.button("Partner hinzufügen", key="c_btn_p1"):
+                components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if st.button("Partner erklären (SEPA)", key="c_btn_p2"):
+                st.toast("SEPA-Codes sind kryptische Kürzel der Banken (z.B. AMZN PMTS für Amazon).")
+                
+        if st.session_state.chat_stage == "topic_dsgvo":
+            st.markdown('<div class="chat-msg chat-user">Datenschutz</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="chat-msg chat-bot">Ihre Daten sind sicher (Azure DE). Wir verarbeiten nur für 90 Tage, prüfen via Human-in-the-Loop und geben nichts an Dritte weiter.</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+
+        if st.session_state.chat_stage == "topic_zeit":
+            st.markdown('<div class="chat-msg chat-user">Zeitplan</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            wd = st.session_state.get('wechseldatum_str', 'bald')
+            st.markdown(f'<div class="chat-msg chat-bot">Ihr Wechseldatum ist {wd}. Die gesetzliche Frist von 12 Werktagen gemäß ZKG §21 wird eingehalten.</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+
+        if st.session_state.chat_stage == "topic_tech":
+            st.markdown('<div class="chat-msg chat-user">Technische Frage</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="chat-msg chat-bot">Für technische Fragen steht Ihnen unser Team zur Verfügung: 0800 123 456 78 (kostenlos, Mo-Fr 8-20 Uhr)</div><div class="chat-clear"></div>', unsafe_allow_html=True)
+
+        if st.session_state.chat_stage != "init":
+            st.markdown("<hr style='margin: 10px 0; border-color: #374151;'/>", unsafe_allow_html=True)
+            if st.button("Menschlichen Berater anfordern", key="c_btn_human"):
+                st.toast("Ein GFS-Berater wird sich innerhalb von 2 Stunden bei Ihnen melden. (Demonstrationsmodus)")
+            if st.button("Gespräch beenden", key="c_btn_end"):
+                st.session_state.chat_open = False
+                st.session_state.chat_stage = "init"
+                st.rerun()
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     init_state()
@@ -1019,6 +1121,7 @@ def main():
     render_steps(st.session_state.step)
     render_sidebar()
     {0: page_step0, 1: page_step1, 2: page_step2, 3: page_step3, 4: page_step4, 5: page_step5}[st.session_state.step]()
+    render_chat_widget()
     render_footer()
 
 if __name__ == "__main__":
