@@ -18,7 +18,15 @@ st.markdown(CSS, unsafe_allow_html=True)
 BASELINE_DAYS = 16
 
 def validate_iban(iban):
-    return bool(re.fullmatch(r"DE\d{20}", iban.replace(" ", "")))
+    # Check if format is DE + 2 digits + 18 digits = 22 chars
+    iban_clean = iban.replace(" ", "").upper()
+    return bool(re.fullmatch(r"DE\d{20}", iban_clean))
+
+def format_iban(iban):
+    # Remove spaces and uppercase
+    iban_clean = iban.replace(" ", "").upper()
+    # Chunk into groups of 4
+    return " ".join(iban_clean[i:i+4] for i in range(0, len(iban_clean), 4))
 
 def biz_days_ahead(start, days):
     cur = start
@@ -31,17 +39,18 @@ def biz_days_ahead(start, days):
 
 def gen_gfs_iban():
     digits = "".join([str(random.randint(0, 9)) for _ in range(12)])
-    return "DE89 2004 0060 " + digits[:4] + " " + digits[4:8] + " " + digits[8:]
+    return format_iban("DE89 2004 0060 " + digits[:4] + digits[4:8] + digits[8:])
 
 def init_state():
     d = dict(
-        step=1, name="", geburtsdatum=date(1990,1,1), iban_alt="", bank_alt="",
+        step=0, name="", geburtsdatum=date(1990,1,1), iban_alt="", bank_alt="",
         psd2_consent=False, dsgvo_consent=False,
         partners=None, manual_partners=[], ki_done=False,
         iban_neu="", wechseldatum=None,
         sim_done=False, nps_score=None, demo_mode=False,
         start_time=None, end_time=None,
         active_persona=None, view_mode="kunde",
+        sim_task_idx=0  # For Step 4 progress tracking
     )
     for k, v in d.items():
         if k not in st.session_state:
@@ -61,14 +70,15 @@ def apply_demo():
         d = DEMO_CUSTOMER
         st.session_state.name = d["name"]
         st.session_state.geburtsdatum = d["geburtsdatum"]
-        st.session_state.iban_alt = d["iban_alt"]
+        st.session_state.iban_alt = format_iban(d["iban_alt"])
         st.session_state.bank_alt = d["bank_alt"]
         st.session_state.psd2_consent = True
         st.session_state.dsgvo_consent = True
         st.session_state.ki_done = True
         st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
+        st.session_state.step = 1
         st.session_state["s1_name_input"] = d["name"]
-        st.session_state["s1_iban_input"] = d["iban_alt"]
+        st.session_state["s1_iban_input"] = format_iban(d["iban_alt"])
         st.session_state["s1_bank_select"] = d["bank_alt"]
         st.session_state["s1_geb_input"] = d["geburtsdatum"]
         st.session_state["s1_psd2_cb"] = True
@@ -81,7 +91,7 @@ def apply_persona(persona_id):
     st.session_state.active_persona = persona_id
     st.session_state.name = cust["name"]
     st.session_state.geburtsdatum = cust["geburtsdatum"]
-    st.session_state.iban_alt = cust["iban_alt"]
+    st.session_state.iban_alt = format_iban(cust["iban_alt"])
     st.session_state.bank_alt = cust["bank_alt"]
     st.session_state.psd2_consent = True
     st.session_state.dsgvo_consent = True
@@ -94,9 +104,10 @@ def apply_persona(persona_id):
     st.session_state.sim_done = False
     st.session_state.nps_score = None
     st.session_state.end_time = None
+    st.session_state.step = 1
     
     st.session_state["s1_name_input"] = cust["name"]
-    st.session_state["s1_iban_input"] = cust["iban_alt"]
+    st.session_state["s1_iban_input"] = format_iban(cust["iban_alt"])
     st.session_state["s1_bank_select"] = cust["bank_alt"]
     st.session_state["s1_geb_input"] = cust["geburtsdatum"]
     st.session_state["s1_psd2_cb"] = True
@@ -180,12 +191,53 @@ def render_header():
             st.session_state.view_mode = "berater"
             st.rerun()
 def render_steps(cur):
+    if cur == 0:
+        return # Hide step bar on Intro page
+        
     labels = ["1 Identifikation","2 KI-Analyse","3 Neues Konto","4 \u00dcbertragung","5 Abschluss"]
     pills = ""
     for i, l in enumerate(labels, 1):
         cls = "step-done" if i < cur else ("step-active" if i == cur else "step-todo")
         pills += '<span class="step-pill ' + cls + '">' + l + '</span>'
-    st.markdown('<div class="steps-bar">' + pills + '</div>', unsafe_allow_html=True)
+    
+    html = '<div class="steps-bar">' + pills + '</div>'
+    
+    # Calculate custom progress percentage
+    pct = 0
+    if cur == 1:
+        pct = 10
+    elif cur == 2:
+        base = 20
+        total_p = len(st.session_state.partners)
+        if total_p > 0:
+            sel_count = sum(1 for p in st.session_state.partners if p.get("selected", False))
+            pct = base + int((sel_count / total_p) * 20)
+        else:
+            pct = 40
+    elif cur == 3:
+        pct = 60
+    elif cur == 4:
+        pct = 60 + st.session_state.get("sim_progress_pct", 0)
+    elif cur == 5:
+        pct = 100
+
+    text_html = f'<div class="custom-progress-text">Ihr Wechsel ist zu {pct}% abgeschlossen</div>'
+    if cur == 5:
+        text_html = '<div class="custom-progress-text-gold">Wechsel erfolgreich abgeschlossen</div>'
+        
+    html += f'''
+    <div class="custom-progress-wrapper">
+        <div class="custom-progress-bg">
+            <div class="custom-progress-fill" style="width: {pct}%;"></div>
+        </div>
+        {text_html}
+    </div>
+    '''
+    
+    if "steps_placeholder" in st.session_state:
+        st.session_state.steps_placeholder.markdown(html, unsafe_allow_html=True)
+    else:
+        st.markdown(html, unsafe_allow_html=True)
 
 def render_sidebar():
     with st.sidebar:
@@ -226,6 +278,114 @@ def render_footer():
         EU AI Act: Hochrisiko-KI-System (Annex III) &middot; DSGVO Art. 22 konform<br>
         Powered by <strong>metafinanz</strong> Informationssysteme GmbH (Allianz Gruppe)
     </div>""", unsafe_allow_html=True)
+
+# ── Step 0 ───────────────────────────────────────────────────────────────────
+def page_step0():
+    st.markdown('<div class="intro-container">', unsafe_allow_html=True)
+    
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        st.markdown('''
+        <div class="intro-col intro-left">
+            <h2>Kontowechsel heute bei GFS</h2>
+            <div class="intro-timeline">
+                <div class="intro-timeline-item">
+                    <span class="time">Tag 1:</span>
+                    <span class="desc">Kunde erh\u00e4lt 47-seitiges PDF-Dokument</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Tag 3:</span>
+                    <span class="desc">Manuelle Recherche aller Zahlungspartner</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Tag 7:</span>
+                    <span class="desc">Einzelne Kontaktaufnahme mit jedem Partner</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Tag 14:</span>
+                    <span class="desc">Erste Best\u00e4tigungen eingegangen</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Tag 21:</span>
+                    <span class="desc">Wechsel m\u00f6glicherweise abgeschlossen</span>
+                </div>
+            </div>
+            <div class="intro-metric-row">
+                <div class="intro-metric">
+                    <span class="val">\u00d8 16 Tage</span>
+                    <span class="lbl">Wechseldauer</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">73%</span>
+                    <span class="lbl">Erfolgsquote</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">-12</span>
+                    <span class="lbl">NPS</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">127 &euro;</span>
+                    <span class="lbl">Kosten pro Fall</span>
+                </div>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+    with col_right:
+        st.markdown('''
+        <div class="intro-col intro-right">
+            <h2 style="color:#2ecc71 !important;">Kontowechsel mit KI-Service</h2>
+            <div class="intro-timeline">
+                <div class="intro-timeline-item">
+                    <span class="time">Minute 1:</span>
+                    <span class="desc">Zugang zur alten Bank gew\u00e4hren (PSD2)</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Minute 2:</span>
+                    <span class="desc">KI analysiert alle Zahlungspartner automatisch</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Minute 3:</span>
+                    <span class="desc">Erkannte Partner best\u00e4tigen</span>
+                </div>
+                <div class="intro-timeline-item">
+                    <span class="time">Minute 5:</span>
+                    <span class="desc">Automatische Benachrichtigung aller Partner</span>
+                </div>
+                <div class="intro-timeline-item" style="color:#2ecc71 !important; font-weight:700;">
+                    <span class="time" style="color:inherit !important;">Tag 2:</span>
+                    <span class="desc" style="color:inherit !important;">Wechsel vollst\u00e4ndig abgeschlossen</span>
+                </div>
+            </div>
+            <div class="intro-metric-row">
+                <div class="intro-metric">
+                    <span class="val">< 2 Tage</span>
+                    <span class="lbl">Wechseldauer</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">Ziel 95%+</span>
+                    <span class="lbl">Erfolgsquote</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">Ziel +50</span>
+                    <span class="lbl">NPS</span>
+                </div>
+                <div class="intro-metric">
+                    <span class="val">25 &euro;</span>
+                    <span class="lbl">Kosten pro Fall</span>
+                </div>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="intro-cta-wrapper">', unsafe_allow_html=True)
+    if st.button("KI-Kontowechsel jetzt starten", type="primary"):
+        st.session_state.step = 1
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Step 1 ───────────────────────────────────────────────────────────────────
 def page_step1():
@@ -275,8 +435,15 @@ def page_step1():
         index=(BANK_SUGGESTIONS.index(st.session_state.bank_alt)+1) if st.session_state.bank_alt in BANK_SUGGESTIONS else 0,
         key="s1_bank_select",
     )
-    iban = st.text_input("IBAN (alte Bank)", value=st.session_state.iban_alt,
-                         placeholder="DE00 0000 0000 0000 0000 00", key="s1_iban_input")
+    raw_iban = st.text_input("IBAN (alte Bank)", value=st.session_state.iban_alt,
+                             placeholder="DE00 0000 0000 0000 0000 00", key="s1_iban_input")
+    iban = format_iban(raw_iban)
+    
+    if raw_iban:
+        if validate_iban(iban):
+            st.markdown('<div class="iban-validation iban-success"><strong>&#10003; IBAN-Format g\u00fcltig</strong></div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="iban-validation iban-error">Diese IBAN scheint nicht korrekt zu sein.<br>Erwartetes Format: DE89 3704 0044 0532 0130 00<br>Bitte pr\u00fcfen Sie Ihre Eingabe.</div>', unsafe_allow_html=True)
     name = st.text_input("Kundenname", value=st.session_state.name,
                          placeholder="Julia Bergmann", key="s1_name_input")
     geb = st.date_input("Geburtsdatum", value=st.session_state.geburtsdatum,
@@ -566,6 +733,8 @@ def _run_simulation():
     
     for idx, desc in enumerate(tasks):
         frac = (idx + 1) / len(tasks)
+        st.session_state.sim_progress_pct = int(frac * 30)
+        render_steps(4) # force update of the top progress bar
         
         if is_berater:
             ts = (base_time + timedelta(seconds=idx)).strftime("%H:%M:%S.%f")[:-3]
@@ -780,9 +949,10 @@ def main():
     init_state()
     render_header()
     render_timer()
+    st.session_state.steps_placeholder = st.empty()
     render_steps(st.session_state.step)
     render_sidebar()
-    {1: page_step1, 2: page_step2, 3: page_step3, 4: page_step4, 5: page_step5}[st.session_state.step]()
+    {0: page_step0, 1: page_step1, 2: page_step2, 3: page_step3, 4: page_step4, 5: page_step5}[st.session_state.step]()
     render_footer()
 
 if __name__ == "__main__":

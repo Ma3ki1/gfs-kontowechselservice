@@ -182,6 +182,43 @@ div[data-testid="stProgress"] > div > div > div { background-color: #e8a020 !imp
 .biz-metric .val { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
 .biz-metric .lbl { font-size: .75rem; color: #666; margin-top: .3rem; }
 .biz-metric.highlight .val { color: #2ecc71; }
+/* --- FEATURE 1: IBAN Validation --- */
+.iban-validation { padding: .7rem 1rem; border-radius: 8px; font-size: .85rem; margin-top: -.5rem; margin-bottom: 1rem; }
+.iban-error { background: #fadbd8; border: 1px solid #c0392b; color: #922b21; }
+.iban-success { background: #d5f5e3; border: 1px solid #27ae60; color: #1e6e3e; }
+.iban-validation strong { color: inherit !important; }
+
+/* --- FEATURE 2: Custom Progress Bar --- */
+.custom-progress-wrapper { margin-top: 1rem; margin-bottom: 1.5rem; text-align: center; }
+.custom-progress-bg { background: #1a1a2e; height: 6px; border-radius: 3px; width: 100%; overflow: hidden; }
+.custom-progress-fill { height: 100%; background: linear-gradient(90deg, #1a5c52, #00d4aa); transition: width 1s ease-in-out; }
+.custom-progress-text { font-size: .8rem; color: #666; margin-top: .5rem; }
+.custom-progress-text-gold { font-size: .85rem; color: #e8a020; font-weight: 700; margin-top: .5rem; }
+
+/* --- FEATURE 3: Step 0 Intro --- */
+.intro-container { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.intro-col { border-radius: 16px; padding: 1.5rem; color: #fff !important; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+.intro-col * { color: #fff !important; }
+.intro-left { background: #1a0a0a; border: 1px solid #4a1c1c; }
+.intro-right { background: #0a1a16; border: 1px solid #1a5c52; }
+.intro-col h2 { margin: 0; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.2); padding-bottom: .5rem; }
+
+.intro-timeline { margin-top: 1rem; flex-grow: 1; }
+.intro-timeline-item { display: flex; gap: 1rem; margin-bottom: 1rem; font-size: .85rem; line-height: 1.4; }
+.intro-timeline-item .time { font-weight: 700; min-width: 70px; opacity: .8; }
+.intro-timeline-item .desc { flex: 1; }
+
+.intro-metric-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.intro-metric { background: rgba(255,255,255,.05); border-radius: 8px; padding: .8rem; flex: 1; min-width: 120px; text-align: center; }
+.intro-left .intro-metric { border-top: 2px solid #e74c3c; }
+.intro-right .intro-metric { border-top: 2px solid #2ecc71; }
+.intro-metric .val { font-size: 1.3rem; font-weight: 700; display: block; margin-bottom: .2rem; }
+.intro-left .intro-metric .val { color: #e74c3c !important; }
+.intro-right .intro-metric .val { color: #e8a020 !important; }
+.intro-metric .lbl { font-size: .7rem; opacity: .7; text-transform: uppercase; letter-spacing: .5px; }
+
+.intro-cta-wrapper { text-align: center; margin-top: 1rem; margin-bottom: 2rem; }
+.intro-cta-wrapper button { font-size: 1.1rem !important; padding: .8rem 2.5rem !important; border-radius: 50px !important; }
 </style>
 """
 
