@@ -137,9 +137,8 @@ def render_header():
         <h1>Global Finance Solutions SE</h1>
         <p>KI-Kontowechselservice &mdash; SteerCo Prototyp 09.06.2026</p>
     </div>""", unsafe_allow_html=True)
-
 def render_steps(cur):
-    labels = ["1 Identifikation","2 KI-Analyse","3 Neues Konto",u"4 \u00dcbertragung","5 Abschluss"]
+    labels = ["1 Identifikation","2 KI-Analyse","3 Neues Konto","4 \u00dcbertragung","5 Abschluss"]
     pills = ""
     for i, l in enumerate(labels, 1):
         cls = "step-done" if i < cur else ("step-active" if i == cur else "step-todo")
@@ -154,39 +153,11 @@ def render_sidebar():
         st.progress(st.session_state.step / 5)
         st.divider()
 
-        # Persona selector
-        st.markdown('<p class="section-heading">Demo-Profile:</p>', unsafe_allow_html=True)
-        persona_keys = list(PERSONAS.keys())
-        current_idx = 0
-        if st.session_state.active_persona in persona_keys:
-            current_idx = persona_keys.index(st.session_state.active_persona)
-
-        for pid, pdata in PERSONAS.items():
-            border_color = pdata["color"]
-            is_active = st.session_state.active_persona == pid
-            bg = "rgba(255,255,255,.15)" if is_active else "rgba(255,255,255,.06)"
-            border_w = "3px" if is_active else "1px"
-            st.markdown(
-                '<div class="persona-card" style="border-left:' + border_w + ' solid ' + border_color + ';background:' + bg + ';">'
-                '<div class="persona-name" style="color:' + border_color + ';">' + pdata["label"] + '</div>'
-                '<div class="persona-meta">' + str(pdata["alter"]) + ' J. | ' + pdata["beruf"] + ' | ' + pdata["bank"] + '</div>'
-                '<span class="persona-badge" style="background:' + border_color + '22;color:' + border_color + ';">'
-                + pdata["badge"] + '</span>'
-                '</div>', unsafe_allow_html=True)
-            if st.button("Profil laden: " + pdata["label"].split(" ")[-1], key="persona_btn_" + pid):
-                apply_persona(pid)
-                st.session_state.step = 1
-                st.session_state.start_time = datetime.now()
-                st.session_state.end_time = None
-                st.warning("Profil gewechselt \u2014 Demo wird neu gestartet.")
-                time.sleep(1)
-                st.rerun()
-
         if st.session_state.active_persona:
-            pname = PERSONAS[st.session_state.active_persona]["label"]
-            st.markdown('<div class="active-persona">Aktives Profil: <strong>' + pname.split(" ")[-1] + '</strong></div>', unsafe_allow_html=True)
+            pdata = PERSONAS[st.session_state.active_persona]
+            st.markdown('<div class="active-persona">Aktives Profil: <strong>' + pdata["label"] + '</strong></div>', unsafe_allow_html=True)
+            st.divider()
 
-        st.divider()
         if st.toggle("Demo-Modus", key="sidebar_demo_toggle"):
             if not st.session_state.demo_mode:
                 st.session_state.demo_mode = True
@@ -220,6 +191,33 @@ def page_step1():
     if st.session_state.start_time is None:
         st.session_state.start_time = datetime.now()
 
+    # Persona selector — prominent cards
+    st.markdown('<p class="section-heading">Schnellstart: Demo-Profil w\u00e4hlen</p>', unsafe_allow_html=True)
+    col_n, col_t, col_g = st.columns(3)
+    for col, pid in [(col_n, "nina"), (col_t, "thomas"), (col_g, "gabi")]:
+        pdata = PERSONAS[pid]
+        is_active = st.session_state.active_persona == pid
+        border_w = "3px" if is_active else "1px"
+        shadow = "0 4px 16px rgba(0,0,0,.15)" if is_active else "0 1px 6px rgba(0,0,0,.04)"
+        with col:
+            st.markdown(
+                '<div style="background:#fff;border-left:4px solid ' + pdata["color"] + ';border-radius:14px;'
+                'padding:1rem 1.1rem;box-shadow:' + shadow + ';margin-bottom:.5rem;">'
+                '<div style="font-weight:700;font-size:.95rem;color:' + pdata["color"] + ';">' + pdata["label"] + '</div>'
+                '<div style="font-size:.78rem;color:#666;margin:.3rem 0;line-height:1.5;">'
+                + str(pdata["alter"]) + ' Jahre<br>' + pdata["beruf"] + '<br>Bank: ' + pdata["bank"] + '</div>'
+                '<span style="display:inline-block;background:' + pdata["color"] + '18;color:' + pdata["color"] + ';'
+                'padding:.15rem .6rem;border-radius:50px;font-size:.68rem;font-weight:600;">'
+                + pdata["badge"] + '</span>'
+                '</div>', unsafe_allow_html=True)
+            if st.button(pdata["label"].split(" ")[-1] + " laden", key="persona_btn_" + pid, use_container_width=True):
+                apply_persona(pid)
+                st.session_state.step = 1
+                st.session_state.start_time = datetime.now()
+                st.session_state.end_time = None
+                st.rerun()
+
+    st.markdown('---')
     st.markdown('<div class="card"><h3>Schritt 1 &mdash; Altes Konto identifizieren</h3>', unsafe_allow_html=True)
     st.markdown('<span class="badge-ok">KI-gest\u00fctzte Erkennung aktiv</span>', unsafe_allow_html=True)
 
