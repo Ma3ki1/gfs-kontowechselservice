@@ -549,6 +549,8 @@ def page_step2():
         kennt aber nur 12-15 bewusst. Unsere KI erkennt alle.</div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+    partners = st.session_state.partners
+
     # Vergessen-Warnung
     if not is_berater and not st.session_state.warning_dismissed:
         missing_insurance = not any(c in p["name"].lower() or c in p["category"].lower() for p in partners for c in ["versicherung", "haftpflicht", "kfz", "aok", "allianz", "huk"])
@@ -589,8 +591,6 @@ def page_step2():
                 st.session_state.warning_dismissed = True
                 st.rerun()
 
-    partners = st.session_state.partners
-    
     # Enrich and sort partners by risk
     for p in partners:
         p["_risk_lvl"], p["_risk_label"], p["_risk_color"] = get_risk_level(p)
