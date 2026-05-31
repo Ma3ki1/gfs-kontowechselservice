@@ -77,7 +77,7 @@ def apply_demo():
         st.session_state.cons_daten = True
         st.session_state.cons_verarb = True
         st.session_state.cons_mensch = True
-        st.session_state.ki_done = True
+        st.session_state.ki_done = False
         st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
         st.session_state.step = 1
         st.session_state["s1_name_input"] = d["name"]
@@ -100,7 +100,7 @@ def apply_persona(persona_id):
     st.session_state.cons_daten = True
     st.session_state.cons_verarb = True
     st.session_state.cons_mensch = True
-    st.session_state.ki_done = True
+    st.session_state.ki_done = False
     st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
     st.session_state.partners = copy.deepcopy(p["partners"])
     for partner in st.session_state.partners:
