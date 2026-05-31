@@ -66,10 +66,12 @@ def apply_demo():
         st.session_state.dsgvo_consent = True
         st.session_state.ki_done = True
         st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
-        for wk in ["s1_bank_select", "s1_iban_input", "s1_name_input",
-                   "s1_geb_input", "s1_psd2_cb", "s1_dsgvo_cb"]:
-            if wk in st.session_state:
-                del st.session_state[wk]
+        st.session_state["s1_name_input"] = d["name"]
+        st.session_state["s1_iban_input"] = d["iban_alt"]
+        st.session_state["s1_bank_select"] = d["bank_alt"]
+        st.session_state["s1_geb_input"] = d["geburtsdatum"]
+        st.session_state["s1_psd2_cb"] = True
+        st.session_state["s1_dsgvo_cb"] = True
 
 def apply_persona(persona_id):
     """Load all data for a persona profile."""
@@ -91,11 +93,13 @@ def apply_persona(persona_id):
     st.session_state.sim_done = False
     st.session_state.nps_score = None
     st.session_state.end_time = None
-    # Clear cached widget keys so Streamlit picks up new values
-    for wk in ["s1_bank_select", "s1_iban_input", "s1_name_input",
-               "s1_geb_input", "s1_psd2_cb", "s1_dsgvo_cb"]:
-        if wk in st.session_state:
-            del st.session_state[wk]
+    
+    st.session_state["s1_name_input"] = cust["name"]
+    st.session_state["s1_iban_input"] = cust["iban_alt"]
+    st.session_state["s1_bank_select"] = cust["bank_alt"]
+    st.session_state["s1_geb_input"] = cust["geburtsdatum"]
+    st.session_state["s1_psd2_cb"] = True
+    st.session_state["s1_dsgvo_cb"] = True
 
 def conf_dot(confidence):
     if confidence >= 90:
