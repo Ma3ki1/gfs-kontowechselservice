@@ -219,6 +219,7 @@ div[data-testid="stProgress"] > div > div > div { background-color: #e8a020 !imp
 
 .intro-cta-wrapper { text-align: center; margin-top: 1rem; margin-bottom: 2rem; }
 .intro-cta-wrapper button { font-size: 1.1rem !important; padding: .8rem 2.5rem !important; border-radius: 50px !important; }
+.compliance-pill { display: inline-block; background: #eaecee; color: #555; border-radius: 50px; padding: .2rem .7rem; font-size: .7rem; font-weight: 600; margin-right: .5rem; margin-top: .5rem; }
 </style>
 """
 

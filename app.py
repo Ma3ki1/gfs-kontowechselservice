@@ -10,7 +10,7 @@ from datetime import date, timedelta, datetime
 from styles import CSS, CONFETTI_HTML
 from mock_data import (DEMO_CUSTOMER, BANK_SUGGESTIONS, AI_DETECTED_PARTNERS,
                        RHYTHM_LABELS, PERSONAS)
-from pdf_generator import generate_confirmation_pdf
+from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
 
 st.set_page_config(page_title="GFS Kontowechselservice", page_icon="", layout="centered")
 st.markdown(CSS, unsafe_allow_html=True)
@@ -45,7 +45,7 @@ def gen_gfs_iban():
 def init_state():
     d = dict(
         step=0, name="", geburtsdatum=date(1990,1,1), iban_alt="", bank_alt="",
-        psd2_consent=False, dsgvo_consent=False,
+        cons_daten=False, cons_verarb=False, cons_mensch=False,
         partners=None, manual_partners=[], ki_done=False,
         iban_neu="", wechseldatum=None,
         sim_done=False, nps_score=None, demo_mode=False,
@@ -73,8 +73,9 @@ def apply_demo():
         st.session_state.geburtsdatum = d["geburtsdatum"]
         st.session_state.iban_alt = format_iban(d["iban_alt"])
         st.session_state.bank_alt = d["bank_alt"]
-        st.session_state.psd2_consent = True
-        st.session_state.dsgvo_consent = True
+        st.session_state.cons_daten = True
+        st.session_state.cons_verarb = True
+        st.session_state.cons_mensch = True
         st.session_state.ki_done = True
         st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
         st.session_state.step = 1
@@ -82,8 +83,9 @@ def apply_demo():
         st.session_state["s1_iban_input"] = format_iban(d["iban_alt"])
         st.session_state["s1_bank_select"] = d["bank_alt"]
         st.session_state["s1_geb_input"] = d["geburtsdatum"]
-        st.session_state["s1_psd2_cb"] = True
-        st.session_state["s1_dsgvo_cb"] = True
+        st.session_state["s1_cons_daten_cb"] = True
+        st.session_state["s1_cons_verarb_cb"] = True
+        st.session_state["s1_cons_mensch_cb"] = True
 
 def apply_persona(persona_id):
     """Load all data for a persona profile."""
@@ -94,8 +96,9 @@ def apply_persona(persona_id):
     st.session_state.geburtsdatum = cust["geburtsdatum"]
     st.session_state.iban_alt = format_iban(cust["iban_alt"])
     st.session_state.bank_alt = cust["bank_alt"]
-    st.session_state.psd2_consent = True
-    st.session_state.dsgvo_consent = True
+    st.session_state.cons_daten = True
+    st.session_state.cons_verarb = True
+    st.session_state.cons_mensch = True
     st.session_state.ki_done = True
     st.session_state.wechseldatum = biz_days_ahead(date.today(), 12)
     st.session_state.partners = copy.deepcopy(p["partners"])
@@ -111,8 +114,9 @@ def apply_persona(persona_id):
     st.session_state["s1_iban_input"] = format_iban(cust["iban_alt"])
     st.session_state["s1_bank_select"] = cust["bank_alt"]
     st.session_state["s1_geb_input"] = cust["geburtsdatum"]
-    st.session_state["s1_psd2_cb"] = True
-    st.session_state["s1_dsgvo_cb"] = True
+    st.session_state["s1_cons_daten_cb"] = True
+    st.session_state["s1_cons_verarb_cb"] = True
+    st.session_state["s1_cons_mensch_cb"] = True
 
 def conf_dot(confidence):
     if confidence >= 90:
@@ -471,18 +475,51 @@ def page_step1():
     geb = st.date_input("Geburtsdatum", value=st.session_state.geburtsdatum,
                         min_value=date(1930,1,1), max_value=date(2010,12,31), key="s1_geb_input")
 
-    psd2 = st.checkbox(
-        u"Ich erteile Global Finance Solutions SE die Einwilligung, meine Kontodaten gem\u00e4\u00df PSD2 abzurufen",
-        value=st.session_state.psd2_consent, key="s1_psd2_cb")
-    dsgvo = st.checkbox(
-        u"Ich stimme der Verarbeitung meiner Daten gem\u00e4\u00df DSGVO zu",
-        value=st.session_state.dsgvo_consent, key="s1_dsgvo_cb")
+    st.markdown('<p class="section-heading" style="margin-top:1.5rem;">Datenschutz & Einwilligungen</p>', unsafe_allow_html=True)
+    
+    cb1 = st.checkbox(
+        u"Ich erteile Global Finance Solutions SE die Einwilligung, meine Kontobewegungen der letzten 24 Monate gem\u00e4\u00df PSD2 einmalig abzurufen.",
+        value=st.session_state.cons_daten, key="s1_cons_daten_cb")
+    with st.expander("Details zum Datenabruf anzeigen"):
+        st.markdown("""
+        **Was abgerufen wird:**
+        - Kontonummer und IBAN
+        - Transaktionshistorie (24 Monate)
+        - Dauerauftr\u00e4ge und Lastschriftmandate
+        - Kontoinhaber-Stammdaten
+        
+        **Was NICHT abgerufen wird:**
+        - Kreditw\u00fcrdigkeitsdaten
+        - Daten anderer Konten
+        - Passw\u00f6rter oder TANs
+        """)
+
+    cb2 = st.checkbox(
+        u"Ich stimme der KI-gest\u00fctzten Analyse meiner Transaktionsdaten zur automatischen Erkennung von Zahlungspartnern zu (DSGVO Art. 6 Abs. 1a).",
+        value=st.session_state.cons_verarb, key="s1_cons_verarb_cb")
+    with st.expander("Details zur Verarbeitung anzeigen"):
+        st.markdown("""
+        - Daten werden ausschlie\u00dflich f\u00fcr den Kontowechsel verwendet
+        - Keine Weitergabe an Dritte
+        - L\u00f6schung nach 90 Tagen
+        - Speicherung ausschlie\u00dflich auf EU-Servern (Azure Deutschland)
+        """)
+
+    cb3 = st.checkbox(
+        u"Ich verstehe, dass alle KI-Vorschl\u00e4ge von mir best\u00e4tigt werden m\u00fcssen und keine automatischen Entscheidungen ohne meine Zustimmung erfolgen (DSGVO Art. 22 \u2014 Human-in-the-Loop).",
+        value=st.session_state.cons_mensch, key="s1_cons_mensch_cb")
+
+    st.markdown("""
+        <span class="compliance-pill">DSGVO-konform</span>
+        <span class="compliance-pill">EU AI Act compliant</span>
+        <span class="compliance-pill">BaFin BAIT zertifiziert</span>
+    """, unsafe_allow_html=True)
 
     st.session_state.update(iban_alt=iban, name=name, geburtsdatum=geb,
-                            bank_alt=bank_alt, psd2_consent=psd2, dsgvo_consent=dsgvo)
+                            bank_alt=bank_alt, cons_daten=cb1, cons_verarb=cb2, cons_mensch=cb3)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    ready = all([name.strip(), validate_iban(iban), bank_alt, psd2, dsgvo])
+    ready = all([name.strip(), validate_iban(iban), bank_alt, cb1, cb2, cb3])
     if st.button("Weiter", key="s1_next", disabled=not ready):
         st.session_state.step = 2
         st.rerun()
@@ -919,6 +956,13 @@ def page_step5():
                 <div class="lbl">Basierend auf Profilanalyse</div>
             </div>""", unsafe_allow_html=True)
         st.markdown('<div class="info-box" style="margin-top:1rem;"><strong>Business Case:</strong> Bei 50.000 Wechseln/Jahr ergibt sich eine j\u00e4hrliche Einsparung von <strong>5.100.000 &euro;</strong>.</div>', unsafe_allow_html=True)
+        
+        try:
+            audit_bytes = generate_audit_pdf(st.session_state)
+            st.download_button("Audit-Trail herunterladen (PDF)", data=audit_bytes,
+                               file_name="GFS_Audit_Trail.pdf", mime="application/pdf", key="s5_audit_dl")
+        except Exception as e:
+            st.error("Audit-PDF Generierung fehlgeschlagen: " + str(e))
 
     st.markdown("---")
 
