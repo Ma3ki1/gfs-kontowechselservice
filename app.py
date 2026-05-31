@@ -4,6 +4,7 @@ Global Finance Solutions SE | Powered by metafinanz
 """
 import streamlit as st
 import time, re, random, copy
+import streamlit.components.v1 as components
 import pandas as pd
 from datetime import date, timedelta, datetime
 from styles import CSS, CONFETTI_HTML
@@ -169,9 +170,30 @@ def render_timer():
     st.markdown(
         '<div class="timer-bar">'
         '<span class="timer-left">Ihr Wechsel l\u00e4uft seit: '
-        '<span class="timer-value">' + time_str + '</span></span>'
+        '<span class="timer-value" id="live-timer">' + time_str + '</span></span>'
         + right_html +
         '</div>', unsafe_allow_html=True)
+        
+    if st.session_state.end_time is None:
+        start_ts = int(st.session_state.start_time.timestamp())
+        js_code = f"""
+        <script>
+            const startTime = {start_ts};
+            const updateTimer = () => {{
+                const target = window.parent.document.getElementById('live-timer');
+                if (!target) return;
+                const now = Math.floor(Date.now() / 1000);
+                let diff = now - startTime;
+                if (diff < 0) diff = 0;
+                const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                const s = (diff % 60).toString().padStart(2, '0');
+                target.innerText = `${{h}}:${{m}}:${{s}}`;
+            }};
+            setInterval(updateTimer, 1000);
+        </script>
+        """
+        components.html(js_code, height=0, width=0)
 
 # ── Layout ───────────────────────────────────────────────────────────────────
 def render_header():
