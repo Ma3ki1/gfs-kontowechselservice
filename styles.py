@@ -13,6 +13,45 @@ CSS = """
     color: var(--text-color) !important;
 }
 
+/* Timer bar */
+.timer-bar {
+    background: #1a1a2e; border-radius: 50px; padding: .6rem 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(26,26,46,.3);
+    flex-wrap: wrap; gap: .3rem;
+}
+.timer-bar .timer-left { color: #1a5c52; font-weight: 600; font-size: .88rem; }
+.timer-bar .timer-left .timer-value { color: #2ecc71; font-family: 'Courier New', monospace; font-weight: 700; }
+.timer-bar .timer-right { color: #e8a020; font-size: .82rem; font-weight: 500; }
+.timer-bar .timer-right s { color: #e74c3c; }
+.timer-saved { color: #2ecc71 !important; font-weight: 700 !important; font-size: .85rem !important; }
+
+/* Persona cards in sidebar */
+.persona-card {
+    background: rgba(255,255,255,.06); border-radius: 12px; padding: .7rem .9rem;
+    margin-bottom: .4rem; cursor: pointer; transition: all .2s;
+    font-size: .78rem; line-height: 1.5;
+}
+.persona-card:hover { background: rgba(255,255,255,.12); }
+.persona-card .persona-name { font-weight: 700; font-size: .85rem; }
+.persona-card .persona-meta { color: #aaa; font-size: .72rem; }
+.persona-badge {
+    display: inline-block; padding: .15rem .5rem; border-radius: 50px;
+    font-size: .65rem; font-weight: 600; margin-top: .3rem;
+}
+
+/* Active persona indicator */
+.active-persona { color: var(--text-color); font-size: .8rem; margin-top: .3rem; font-weight: 500; }
+
+/* Critical warning banner */
+.warning-banner {
+    background: linear-gradient(135deg, #fdedec, #fadbd8) !important;
+    border-left: 4px solid #c0392b; border-radius: 8px;
+    padding: .9rem 1.1rem; margin: .8rem 0; font-size: .85rem;
+    color: #922b21 !important; font-weight: 500;
+}
+.warning-banner strong { color: #c0392b !important; }
+
 .gfs-header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #fff; padding: 1.3rem 1.8rem; border-radius: 16px;
@@ -28,7 +67,6 @@ CSS = """
 .step-done { background:#d5f5e3; color:#1a5c52; }
 .step-todo { background:#eaecee; color:#999; }
 
-/* Cards: always white bg + dark text (works in both modes) */
 .card { background:#fff !important; border:1px solid #e8ecf1; border-radius:16px; padding:1.6rem 1.8rem; margin-bottom:1rem; box-shadow:0 1px 8px rgba(0,0,0,.04); color:#1a1a2e !important; }
 .card h3 { margin-top:0; font-size:1.05rem; color:#1a1a2e !important; font-weight:600; }
 .card p, .card span, .card strong, .card td { color:#1a1a2e !important; }
@@ -37,7 +75,6 @@ CSS = """
 .info-box strong { color:#1a5c52 !important; }
 .success-box { background:linear-gradient(135deg,#e8f8f5,#d5f5e3) !important; border-left:4px solid #27ae60; border-radius:8px; padding:.9rem 1.1rem; margin:.8rem 0; font-size:.85rem; color:#1e6e3e !important; }
 
-/* KI partner cards */
 .ki-card { background:#fff !important; border:1px solid #e8ecf1; border-radius:12px; padding:.9rem 1.1rem; margin-bottom:.5rem; display:flex; align-items:center; gap:.7rem; font-size:.88rem; color:#1a1a2e !important; }
 .ki-card:hover { box-shadow:0 2px 12px rgba(26,92,82,.12); }
 .ki-card strong { color:#1a1a2e !important; }
@@ -67,7 +104,6 @@ CSS = """
 .metric-tile .val { font-size:1.6rem; font-weight:700; color:#1a5c52 !important; }
 .metric-tile .lbl { font-size:.78rem; color:#666 !important; margin-top:.2rem; }
 
-/* Buttons */
 div.stButton > button {
     background: linear-gradient(135deg, #e8a020, #d4911a) !important;
     color: #fff !important; border:none !important; border-radius:10px !important;
@@ -83,13 +119,11 @@ div.stButton > button:disabled {
     box-shadow: none !important; transform: none !important;
 }
 
-/* Sidebar */
 .sidebar-logo { background:linear-gradient(135deg,#1a5c52,#1e7a6e); color:#e8a020; width:60px; height:60px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; margin-bottom:.6rem; }
 .sidebar-stats { background:rgba(128,128,128,.12); border-radius:12px; padding:1rem; font-size:.8rem; line-height:1.8; color: var(--text-color); }
 .mf-credit { font-size:.7rem; color:#999; margin-top:1rem; }
 .compliance-badge { display:inline-flex; align-items:center; gap:.3rem; background:rgba(26,92,82,.15); border:1px solid #1a5c52; color:#1a5c52; padding:.25rem .6rem; border-radius:50px; font-size:.68rem; font-weight:500; margin:.2rem; }
 
-/* Progress bar gold */
 div[data-testid="stProgress"] > div > div > div { background-color: #e8a020 !important; }
 
 @keyframes confetti-fall {
