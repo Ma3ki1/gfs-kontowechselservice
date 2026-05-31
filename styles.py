@@ -134,6 +134,54 @@ div[data-testid="stProgress"] > div > div > div { background-color: #e8a020 !imp
 .confetti-piece { position:absolute; width:10px; height:10px; border-radius:2px; animation: confetti-fall 3s ease-in forwards; }
 
 .gfs-footer { text-align:center; font-size:.7rem; color:#999; margin-top:2rem; padding-top:1rem; border-top:1px solid rgba(128,128,128,.2); }
+
+/* --- FEATURE 1: Risiko-Ampel --- */
+.risk-red { border-left: 4px solid #c0392b !important; }
+.risk-orange { border-left: 4px solid #e8a020 !important; }
+.risk-green { border-left: 4px solid #1a5c52 !important; }
+
+.risk-badge-red { background: #fadbd8; color: #c0392b; font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 50px; }
+.risk-badge-orange { background: #fef9e7; color: #b7950b; font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 50px; }
+.risk-badge-green { background: #d5f5e3; color: #1a5c52; font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 50px; }
+
+/* --- FEATURE 2: Kryptische SEPA Cards --- */
+.cryptic-card {
+    background: #1a1a2e; border-left: 4px solid #1a5c52; border-radius: 8px;
+    padding: .8rem 1rem; margin-bottom: .6rem; color: #fff; font-family: 'Inter', sans-serif;
+}
+.cryptic-card .code { font-family: 'Courier New', monospace; color: #e8a020; font-weight: 700; font-size: .9rem; margin-bottom: .3rem; }
+.cryptic-card .identified { font-weight: 600; font-size: .85rem; color: #2ecc71; margin-bottom: .3rem; }
+.cryptic-card .reason { font-size: .75rem; color: #aaa; }
+.stat-highlight {
+    background: rgba(26,92,82,.1); border: 1px solid #1a5c52; border-radius: 8px;
+    padding: 1rem; text-align: center; margin-top: 1rem;
+}
+.stat-highlight .stat-number { color: #e8a020; font-size: 1.8rem; font-weight: 700; display: block; margin-bottom: .3rem; }
+.stat-highlight .stat-text { color: var(--text-color); font-size: .85rem; }
+
+/* --- FEATURE 3: Berater-Ansicht --- */
+.consultant-mode { border-top: 4px solid #1a5c52; }
+.consultant-badge {
+    position: absolute; top: -10px; right: 10px; background: #1a5c52; color: #fff;
+    font-size: .65rem; font-weight: 700; padding: .2rem .6rem; border-radius: 4px;
+}
+.audit-log-container {
+    background: #0d1117; color: #c9d1d9; border-radius: 12px; padding: 1rem;
+    font-family: 'Courier New', monospace; font-size: .75rem; max-height: 500px; overflow-y: auto;
+}
+.audit-log-container .ts { color: #7ee787; }
+.audit-log-container .info { color: #58a6ff; }
+.audit-log-container .warn { color: #e8a020; }
+.audit-log-container .err { color: #f85149; }
+.checklist-item { font-size: .8rem; margin-bottom: .4rem; display: flex; align-items: center; gap: .5rem; }
+.checklist-item.done { color: #2ecc71; }
+.biz-metric {
+    background: #fff; border: 1px solid #e8ecf1; border-radius: 8px; padding: 1rem;
+    text-align: center; height: 100%; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.biz-metric .val { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+.biz-metric .lbl { font-size: .75rem; color: #666; margin-top: .3rem; }
+.biz-metric.highlight .val { color: #2ecc71; }
 </style>
 """
 
