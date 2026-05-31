@@ -279,6 +279,31 @@ div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) button {
     box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; font-size: .9rem !important;
     font-weight: 600 !important;
 }
+
+/* --- FEATURE 1 & 2 (Tech Credibility): Terminal & SEPA Decoder --- */
+.terminal-box {
+    background: #0a0e1a; color: #a5b4fc; font-family: 'Courier New', monospace;
+    padding: 1.5rem; border-radius: 8px; border: 1px solid #1e293b; min-height: 220px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+.term-line { margin-bottom: 0.4rem; font-size: 0.85rem; line-height: 1.4; }
+.term-ok { color: #2ecc71; font-weight: bold; }
+.term-muted { color: #475569; font-size: 0.75rem; float: right; }
+
+.connection-diagram { display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.8rem; }
+.conn-box { background: #1e293b; padding: 0.5rem 0.8rem; border-radius: 4px; border: 1px solid #475569; color: white; text-align: center; }
+.conn-line { flex-grow: 1; height: 2px; background: repeating-linear-gradient(90deg, #2ecc71 0, #2ecc71 10px, transparent 10px, transparent 20px); background-size: 40px 100%; animation: dash 1s linear infinite; margin: 0 10px; position: relative; }
+.conn-line::after { content: attr(data-label); position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: #a5b4fc; white-space: nowrap; }
+@keyframes dash { to { background-position: 40px 0; } }
+
+.decoder-result {
+    border: 1px solid #1a5c52; background: rgba(26,92,82,0.05); padding: 1rem;
+    border-radius: 8px; margin-top: 1rem; font-family: 'Courier New', monospace;
+    color: #333; font-size: 0.85rem;
+}
+.decoder-result strong { color: #1a5c52; }
+.decoder-error { color: #c0392b; font-weight: bold; font-family: 'Courier New', monospace; margin-top: 0.5rem; }
+
 </style>
 """
 

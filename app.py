@@ -532,17 +532,66 @@ def page_step1():
 
 # ── Step 2 ───────────────────────────────────────────────────────────────────
 def page_step2():
-    if not st.session_state.ki_done:
-        st.markdown('<div class="card"><h3>KI analysiert Ihre Kontodaten...</h3></div>', unsafe_allow_html=True)
-        bar = st.progress(0, text="Transaktionen der letzten 24 Monate werden analysiert...")
-        for i in range(100):
-            time.sleep(0.02)
-            bar.progress(i + 1, text="NLP-Analyse l\u00e4uft... " + str(i+1) + "%")
-        st.session_state.ki_done = True
-        time.sleep(0.3)
-        st.rerun()
-
     is_berater = st.session_state.view_mode == "berater"
+
+    if not st.session_state.ki_done:
+        ph = st.empty()
+        html_base = '<div class="terminal-box">'
+        diag = '<div class="connection-diagram"><div class="conn-box">[Kunde]</div><div class="conn-line" data-label="TLS 1.3"></div><div class="conn-box" style="background:#1a5c52">[GFS KI-Service]</div><div class="conn-line" data-label="PSD2"></div><div class="conn-box">[Alte Bank]</div></div>'
+        
+        st1_html = html_base + '<div class="term-line">Verbindung wird aufgebaut...</div>' + diag
+        ph.markdown(st1_html + '</div>', unsafe_allow_html=True)
+        time.sleep(0.8)
+        
+        st2_html = st1_html + '<div class="term-line"><br/>Authentifizierung l&auml;uft...</div>'
+        ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
+        
+        auth_steps = [
+            ("OAuth 2.0 Token angefordert...", "Token erhalten [OK]", "/api/v1/auth"),
+            ("Starke Kundenauthentifizierung (SCA)...", "[OK]", "/api/v1/sca"),
+            ("PSD2 Consent validiert...", "[OK]", "/api/v1/consent")
+        ]
+        
+        for step_name, step_ok, endpoint in auth_steps:
+            time.sleep(0.3)
+            met_html = f'<span class="term-muted">HTTP 200 OK | {random.randint(45, 120)}ms | {endpoint}</span>' if is_berater else ''
+            st2_html += f'<div class="term-line">- {step_name} &rarr; <span class="term-ok">{step_ok}</span> {met_html}</div>'
+            ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
+            
+        time.sleep(0.2)
+        
+        st3_html = st2_html + '<div class="term-line"><br/>Kontodaten werden abgerufen...<br/>Zeitraum: 24 Monate | Verschl&uuml;sselung: AES-256</div>'
+        total_tx = random.randint(420, 480)
+        curr_tx = 0
+        while curr_tx < total_tx:
+            curr_tx += random.randint(30, 80)
+            if curr_tx > total_tx: curr_tx = total_tx
+            met_html = f'<span class="term-muted">GET /api/v1/transactions?months=24 | {random.randint(110, 320)}ms</span>' if is_berater else ''
+            ph.markdown(st3_html + f'<div class="term-line">Transaktionen geladen: {curr_tx}... {met_html}</div></div>', unsafe_allow_html=True)
+            time.sleep(0.12)
+        
+        st3_html += f'<div class="term-line">Transaktionen geladen: {total_tx}... <span class="term-ok">[OK]</span></div>'
+        time.sleep(0.2)
+        
+        st4_html = st3_html + '<div class="term-line"><br/>KI-Analyse wird gestartet...</div>'
+        ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
+        time.sleep(0.3)
+        
+        tech_stack = [
+            "Modell: GFS-NLP-BERT v2.3.1",
+            "Framework: Python / TensorFlow",
+            "Infrastruktur: Azure Deutschland (Germany West Central)",
+            "Datenhaltung: Ausschlie&szlig;lich EU-Raum"
+        ]
+        for t in tech_stack:
+            st4_html += f'<div class="term-line" style="color:#7ee787">&gt; {t}</div>'
+        
+        st4_html += f'<div class="term-line"><br/><span class="term-ok">Analyse abgeschlossen &mdash; {total_tx} Transaktionen verarbeitet</span></div>'
+        ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
+        time.sleep(0.8)
+        
+        st.session_state.ki_done = True
+        st.rerun()
 
     st.markdown('<div class="card"><h3>Schritt 2 &mdash; KI-Analyse der Kontobewegungen</h3>', unsafe_allow_html=True)
     st.markdown("""<div class="info-box">Durchschnittlicher Kunde hat 23 Zahlungspartner &mdash;
@@ -690,6 +739,61 @@ def page_step2():
                         '<span class="sub">' + format(mp["amount"], ".2f") + ' EUR / ' + mp["rhythm"] + '</span></span>'
                         '<span class="badge-manual">Manuell</span>'
                         '</div>', unsafe_allow_html=True)
+
+        # SEPA-Code Decoder Widget
+        with st.expander("SEPA-Code manuell entschlüsseln", expanded=False):
+            st.markdown('<div style="font-size:0.85rem; margin-bottom:1rem; color:#666;">Fügen Sie hier einen kryptischen Kontoauszugs-Text ein, um ihn von der GFS-KI entschlüsseln zu lassen.</div>', unsafe_allow_html=True)
+            
+            sepa_input = st.text_input("SEPA-Code / Verwendungszweck", key="sepa_decoder_in", placeholder="z.B. EREF+000000123456789 SVWZ+AMAZON PAYMENTS")
+            
+            sepa_patterns = {
+                "AMAZON": ("Amazon Prime / Amazon Payments", 8.99, "Unkritisch"),
+                "AMZN": ("Amazon Prime / Amazon Payments", 8.99, "Unkritisch"),
+                "NF-FLIX": ("Netflix Streaming", 17.99, "Unkritisch"),
+                "NETFLIX": ("Netflix Streaming", 17.99, "Unkritisch"),
+                "PPSPOTIFY": ("Spotify (via PayPal)", 11.99, "Unkritisch"),
+                "SPOTIFY": ("Spotify", 11.99, "Unkritisch"),
+                "TELEKOM": ("Deutsche Telekom", 89.00, "Wichtig"),
+                "DTAG": ("Deutsche Telekom", 89.00, "Wichtig"),
+                "VATTENFALL": ("Vattenfall Energie", 127.00, "Kritisch"),
+                "STADTWERKE": ("Stadtwerke (Energie/Wasser)", 127.00, "Kritisch"),
+                "AOK": ("AOK Krankenversicherung", 215.00, "Kritisch"),
+                "PAYPAL": ("PayPal Zahlung", 50.00, "Wichtig"),
+                "GOOGLE": ("Google (Play/YouTube)", 9.99, "Unkritisch"),
+                "APPLE": ("Apple (iCloud/App Store)", 9.99, "Unkritisch"),
+                "RUNDFUNK": ("ARD ZDF Rundfunkbeitrag", 18.36, "Wichtig"),
+                "GEZ": ("ARD ZDF Rundfunkbeitrag", 18.36, "Wichtig"),
+            }
+            
+            if sepa_input:
+                inp_upper = sepa_input.upper()
+                found_match = None
+                for k, v in sepa_patterns.items():
+                    if k in inp_upper:
+                        found_match = v
+                        break
+                        
+                if found_match:
+                    name, amount, risk = found_match
+                    st.markdown(f'''
+                    <div class="decoder-result">
+                        <div><strong>SEPA-Code erkannt</strong></div>
+                        <div>Identifiziert als: {name}</div>
+                        <div>Typischer Betrag: {format(amount, ".2f")} EUR/Monat</div>
+                        <div>Risiko-Level: {risk}</div>
+                    </div>
+                    ''', unsafe_allow_html=True)
+                    
+                    if st.button("Zu meiner Liste hinzufügen", key="sepa_add_btn"):
+                        st.session_state.manual_partners.append(
+                            dict(name=name, amount=amount, rhythm="monatlich",
+                                 category="lastschrift", confidence=95, sepa_ref=sepa_input[:15], selected=True))
+                        del st.session_state["sepa_decoder_in"]
+                        st.rerun()
+                else:
+                    st.markdown('<div class="decoder-error">Code nicht erkannt — bitte nutzen Sie die manuelle Eingabe unten.</div>', unsafe_allow_html=True)
+                    if st.button("Zur manuellen Eingabe", key="sepa_scroll_btn"):
+                        components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
 
         # Manual add via tabs
         st.markdown('<p id="manuelle-erfassung" class="section-heading">Zahlungspartner manuell hinzuf\u00fcgen:</p>', unsafe_allow_html=True)
