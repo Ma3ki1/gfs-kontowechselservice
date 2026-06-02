@@ -471,7 +471,7 @@ def page_step1():
     )
     raw_iban = st.text_input("IBAN (alte Bank)",
                              placeholder="DE00 0000 0000 0000 0000 00", key="s1_iban_input",
-                             on_change=format_iban_callback)
+                             on_change=format_iban_callback, max_chars=27)
                              
     components.html("""
     <script>
