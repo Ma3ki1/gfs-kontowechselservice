@@ -29,6 +29,10 @@ def format_iban(iban):
     # Chunk into groups of 4
     return " ".join(iban_clean[i:i+4] for i in range(0, len(iban_clean), 4))
 
+def format_iban_callback():
+    if "s1_iban_input" in st.session_state:
+        st.session_state["s1_iban_input"] = format_iban(st.session_state["s1_iban_input"])
+
 def biz_days_ahead(start, days):
     cur = start
     added = 0
@@ -465,8 +469,45 @@ def page_step1():
         index=(BANK_SUGGESTIONS.index(st.session_state.bank_alt)+1) if st.session_state.bank_alt in BANK_SUGGESTIONS else 0,
         key="s1_bank_select",
     )
-    raw_iban = st.text_input("IBAN (alte Bank)", value=st.session_state.iban_alt,
-                             placeholder="DE00 0000 0000 0000 0000 00", key="s1_iban_input")
+    raw_iban = st.text_input("IBAN (alte Bank)",
+                             placeholder="DE00 0000 0000 0000 0000 00", key="s1_iban_input",
+                             on_change=format_iban_callback)
+                             
+    components.html("""
+    <script>
+    const doc = window.parent.document;
+    const inputs = doc.querySelectorAll('input[aria-label="IBAN (alte Bank)"]');
+    if(inputs.length > 0) {
+        const input = inputs[0];
+        input.addEventListener('input', function(e) {
+            let cursor = e.target.selectionStart;
+            let val = e.target.value.replace(/\s+/g, '').toUpperCase();
+            let formatted = val.match(/.{1,4}/g);
+            formatted = formatted ? formatted.join(' ') : '';
+            
+            if (e.target.value !== formatted) {
+                // Adjust cursor position
+                let spacesBefore = (e.target.value.slice(0, cursor).match(/\s/g) || []).length;
+                let newSpacesBefore = (formatted.slice(0, cursor).match(/\s/g) || []).length;
+                cursor += (newSpacesBefore - spacesBefore);
+                
+                e.target.value = formatted;
+                
+                // Keep React in sync
+                let tracker = e.target._valueTracker;
+                if (tracker) {
+                    tracker.setValue(formatted);
+                }
+                e.target.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Restore cursor
+                e.target.setSelectionRange(cursor, cursor);
+            }
+        });
+    }
+    </script>
+    """, height=0)
+
     iban = format_iban(raw_iban)
     
     if raw_iban:
@@ -474,9 +515,9 @@ def page_step1():
             st.markdown('<div class="iban-validation iban-success"><strong>&#10003; IBAN-Format g\u00fcltig</strong></div>', unsafe_allow_html=True)
         else:
             st.markdown('<div class="iban-validation iban-error">Diese IBAN scheint nicht korrekt zu sein.<br>Erwartetes Format: DE89 3704 0044 0532 0130 00<br>Bitte pr\u00fcfen Sie Ihre Eingabe.</div>', unsafe_allow_html=True)
-    name = st.text_input("Kundenname", value=st.session_state.name,
+    name = st.text_input("Kundenname",
                          placeholder="Julia Bergmann", key="s1_name_input")
-    geb = st.date_input("Geburtsdatum", value=st.session_state.geburtsdatum,
+    geb = st.date_input("Geburtsdatum",
                         min_value=date(1930,1,1), max_value=date(2010,12,31), key="s1_geb_input")
 
     st.markdown('<p class="section-heading" style="margin-top:1.5rem;">Datenschutz & Einwilligungen</p>', unsafe_allow_html=True)
