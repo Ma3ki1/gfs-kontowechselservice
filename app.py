@@ -390,7 +390,7 @@ def page_step0():
                 </div>
                 <div class="intro-timeline-item">
                     <span class="time">Minute 2:</span>
-                    <span class="desc">KI analysiert alle Zahlungspartner automatisch</span>
+                    <span class="desc">KI-gestützte Voranalyse der Zahlungspartner</span>
                 </div>
                 <div class="intro-timeline-item">
                     <span class="time">Minute 3:</span>
@@ -398,7 +398,7 @@ def page_step0():
                 </div>
                 <div class="intro-timeline-item">
                     <span class="time">Minute 5:</span>
-                    <span class="desc">Automatische Benachrichtigung aller Partner</span>
+                    <span class="desc">Digitale Benachrichtigung aller Partner</span>
                 </div>
                 <div class="intro-timeline-item" style="color:#2ecc71 !important; font-weight:700;">
                     <span class="time" style="color:inherit !important;">Tag 2:</span>
@@ -798,7 +798,7 @@ def page_step2():
         c_org = sum(1 for p in partners if p["_risk_lvl"] == 1)
         c_grn = sum(1 for p in partners if p["_risk_lvl"] == 2)
         
-        st.markdown('<p class="section-heading">Automatisch erkannte Zahlungspartner:</p>', unsafe_allow_html=True)
+        st.markdown('<p class="section-heading">KI-vorqualifizierte Zahlungspartner:</p>', unsafe_allow_html=True)
         
         # --- ALTAIR DONUT CHART ---
         df_chart = pd.DataFrame([{"Kategorie": p["category"].title(), "Betrag": p["amount"]} for p in partners if p["category"] != "gehalt"])
@@ -1217,8 +1217,8 @@ def _show_sim_done():
             <h3>Was passiert im Hintergrund?</h3>
             <p style="color:#1a1a2e;font-size:.88rem;line-height:1.7;">
             <strong>1. PSD2 Open Banking</strong> &mdash; Sichere API-Verbindung zur alten Bank via XS2A-Schnittstelle<br>
-            <strong>2. NLP/BERT Analyse</strong> &mdash; KI kategorisiert Transaktionen automatisch<br>
-            <strong>3. SEPA-Nachrichten</strong> &mdash; Automatisierte Benachrichtigung aller Zahlungspartner<br>
+            <strong>2. NLP/BERT Analyse</strong> &mdash; KI kategorisiert Transaktionen vor<br>
+            <strong>3. SEPA-Nachrichten</strong> &mdash; Digitale Benachrichtigung aller Zahlungspartner<br>
             <strong>4. SAP Banking Integration</strong> &mdash; Nahtlose Einrichtung bei GFS Banking Services
             </p>
         </div>""", unsafe_allow_html=True)
