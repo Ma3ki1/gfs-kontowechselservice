@@ -796,10 +796,15 @@ def page_step2():
                 # --- HUMAN IN THE LOOP (Interactive Feedback) ---
                 with st.expander("⚙️ KI-Entscheidung korrigieren", expanded=False):
                     hc1, hc2, hc3 = st.columns([2, 2, 1])
-                    new_cat = hc1.selectbox("Kategorie anpassen", ["lastschrift", "dauerauftrag", "gehalt", "sonstige"], 
-                                            index=["lastschrift", "dauerauftrag", "gehalt", "sonstige"].index(p.get("category", "sonstige")), key=f"cat_{i}")
-                    new_rhythm = hc2.selectbox("Turnus anpassen", ["monatlich", "vierteljährlich", "halbjährlich", "jährlich"], 
-                                            index=["monatlich", "vierteljährlich", "halbjährlich", "jährlich"].index(p.get("rhythm", "monatlich")), key=f"rhy_{i}")
+                    cat_options = ["lastschrift", "dauerauftrag", "gehalt", "sonstige"]
+                    current_cat = p.get("category", "sonstige")
+                    cat_index = cat_options.index(current_cat) if current_cat in cat_options else 3
+                    new_cat = hc1.selectbox("Kategorie anpassen", cat_options, index=cat_index, key=f"cat_{i}")
+                    
+                    rhy_options = ["zweiwöchentlich", "monatlich", "vierteljährlich", "halbjährlich", "jährlich"]
+                    current_rhy = p.get("rhythm", "monatlich")
+                    rhy_index = rhy_options.index(current_rhy) if current_rhy in rhy_options else 1
+                    new_rhythm = hc2.selectbox("Turnus anpassen", rhy_options, index=rhy_index, key=f"rhy_{i}")
                     
                     if new_cat != p["category"] or new_rhythm != p["rhythm"]:
                         partners[i]["category"] = new_cat
