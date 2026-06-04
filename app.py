@@ -16,6 +16,7 @@ import pdf_generator
 importlib.reload(pdf_generator)
 from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
 import altair as alt
+import pandas as pd
 
 st.set_page_config(page_title="GFS Kontowechselservice", page_icon="", layout="centered")
 st.markdown(CSS, unsafe_allow_html=True)
@@ -799,7 +800,6 @@ def page_step2():
         st.markdown('<p class="section-heading">Automatisch erkannte Zahlungspartner:</p>', unsafe_allow_html=True)
         
         # --- ALTAIR DONUT CHART ---
-        import pandas as pd
         df_chart = pd.DataFrame([{"Kategorie": p["category"].title(), "Betrag": p["amount"]} for p in partners if p["category"] != "gehalt"])
         if not df_chart.empty:
             df_grouped = df_chart.groupby("Kategorie").sum().reset_index()
