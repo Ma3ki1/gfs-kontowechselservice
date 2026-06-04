@@ -28,7 +28,21 @@ BASELINE_DAYS = 16
 def validate_iban(iban):
     # Check if format is DE + 2 digits + 18 digits = 22 chars
     iban_clean = iban.replace(" ", "").upper()
-    return bool(re.fullmatch(r"DE\d{20}", iban_clean))
+    if not bool(re.fullmatch(r"DE\d{20}", iban_clean)):
+        return False
+    
+    # Mathematical MOD 97 Check
+    rearranged = iban_clean[4:] + iban_clean[:4]
+    numeric_iban = ""
+    for char in rearranged:
+        if char.isdigit():
+            numeric_iban += char
+        else:
+            numeric_iban += str(ord(char) - ord('A') + 10)
+    try:
+        return int(numeric_iban) % 97 == 1
+    except ValueError:
+        return False
 
 def format_iban(iban):
     # Remove spaces and uppercase
@@ -1479,7 +1493,18 @@ def main():
         st.session_state.previous_step = st.session_state.step
         
     if st.session_state.previous_step != st.session_state.step:
-        components.html("<script>window.parent.scrollTo(0, 0);</script>", height=0)
+        components.html("""
+        <script>
+            var parent = window.parent.document;
+            var elements = ['.stApp', '.main', '[data-testid="stAppViewContainer"]', '[data-testid="stMain"]'];
+            elements.forEach(function(sel) {
+                var el = parent.querySelector(sel);
+                if (el) el.scrollTo({top: 0, behavior: 'instant'});
+            });
+            parent.documentElement.scrollTop = 0;
+            parent.body.scrollTop = 0;
+        </script>
+        """, height=0)
         st.session_state.previous_step = st.session_state.step
         
     render_header()

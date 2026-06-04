@@ -58,7 +58,7 @@ PERSONA_NINA = {
     "customer": {
         "name": "Nina Lehmann",
         "geburtsdatum": date(1998, 5, 14),
-        "iban_alt": "DE72 1001 0010 0845 2319 07",
+        "iban_alt": "DE63 1001 0010 0845 2319 07",
         "bank_alt": "N26",
     },
     "partners": [
@@ -94,7 +94,7 @@ PERSONA_THOMAS = {
     "customer": {
         "name": "Thomas Müller",
         "geburtsdatum": date(1974, 8, 3),
-        "iban_alt": "DE44 7005 0000 0023 4567 89",
+        "iban_alt": "DE25 7005 0000 0023 4567 89",
         "bank_alt": "Sparkasse",
     },
     "partners": [
@@ -122,7 +122,7 @@ PERSONA_GABI = {
     "customer": {
         "name": "Gabriele Fischer",
         "geburtsdatum": date(1991, 11, 27),
-        "iban_alt": "DE65 6609 0800 0045 6789 01",
+        "iban_alt": "DE59 6609 0800 0045 6789 01",
         "bank_alt": "Volksbank",
     },
     "partners": [
