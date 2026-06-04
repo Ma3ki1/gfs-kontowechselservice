@@ -1495,14 +1495,20 @@ def main():
     if st.session_state.previous_step != st.session_state.step:
         components.html("""
         <script>
-            var parent = window.parent.document;
-            var elements = ['.stApp', '.main', '[data-testid="stAppViewContainer"]', '[data-testid="stMain"]'];
-            elements.forEach(function(sel) {
-                var el = parent.querySelector(sel);
-                if (el) el.scrollTo({top: 0, behavior: 'instant'});
-            });
-            parent.documentElement.scrollTop = 0;
-            parent.body.scrollTop = 0;
+            function forceScroll() {
+                var parent = window.parent.document;
+                var elements = ['.stApp', '.main', '[data-testid="stAppViewContainer"]', '[data-testid="stMain"]'];
+                elements.forEach(function(sel) {
+                    var el = parent.querySelector(sel);
+                    if (el) el.scrollTo({top: 0, behavior: 'instant'});
+                });
+                parent.documentElement.scrollTop = 0;
+                parent.body.scrollTop = 0;
+            }
+            forceScroll();
+            setTimeout(forceScroll, 50);
+            setTimeout(forceScroll, 200);
+            setTimeout(forceScroll, 500);
         </script>
         """, height=0)
         st.session_state.previous_step = st.session_state.step
