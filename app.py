@@ -1473,6 +1473,14 @@ def render_chat_widget():
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     init_state()
+    
+    if "previous_step" not in st.session_state:
+        st.session_state.previous_step = st.session_state.step
+        
+    if st.session_state.previous_step != st.session_state.step:
+        components.html("<script>window.parent.scrollTo(0, 0);</script>", height=0)
+        st.session_state.previous_step = st.session_state.step
+        
     render_header()
     render_timer()
     st.session_state.steps_placeholder = st.empty()
