@@ -77,6 +77,7 @@ PERSONA_NINA = {
         {"name": "Wohngemeinschaft Miete", "amount": 680.00, "rhythm": "monatlich", "confidence": 99, "sepa_ref": "WG-MIETE", "category": "dauerauftrag"},
         {"name": "Kreativagentur GmbH", "amount": 2800.00, "rhythm": "monatlich", "confidence": 100, "sepa_ref": "GEHALT", "category": "gehalt"},
         {"name": "Stadtwerke Berlin", "amount": 85.00, "rhythm": "monatlich", "confidence": 97, "sepa_ref": "SW-BLN", "category": "lastschrift"},
+        {"name": "Digital Services LTD Zypern", "amount": 4.99, "rhythm": "monatlich", "confidence": 99, "sepa_ref": "FRAUD-ABO", "category": "fraud"},
     ],
 }
 

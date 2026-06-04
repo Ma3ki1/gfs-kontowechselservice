@@ -810,9 +810,44 @@ def page_step2():
             ).properties(height=250, title="Ihre monatlichen Ausgaben")
             st.altair_chart(chart, use_container_width=True)
 
-        st.markdown(f'<div style="font-size:.8rem;color:#666;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
+        # --- ECO SCORE ---
+        st.markdown('<br>', unsafe_allow_html=True)
+        col_eco1, col_eco2 = st.columns([1, 2])
+        with col_eco1:
+            st.markdown('''
+            <div class="eco-card">
+                <div class="eco-value">78/100</div>
+                <div class="eco-label">Eco-Score</div>
+            </div>
+            ''', unsafe_allow_html=True)
+        with col_eco2:
+            st.markdown('<div style="font-size:0.9rem; color:#666; margin-top:5px; margin-bottom:10px;">Basierend auf deinen Zahlungspartnern verursachst du ca. 1.2 Tonnen CO2 pro Jahr.</div>', unsafe_allow_html=True)
+            if st.button("🌿 CO2-Fußabdruck für 2,50€/M kompensieren", key="btn_eco"):
+                st.session_state.manual_partners.append(
+                    dict(name="GFS Climate Offset", amount=2.50, rhythm="monatlich",
+                         category="dauerauftrag", confidence=100, sepa_ref="ECO-OFFSET", selected=True))
+                st.rerun()
+
+        st.markdown(f'<div style="font-size:.8rem;color:#666;margin-top:1.5rem;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
+
+        # --- FRAUD DETECTION ---
+        fraud_partners = [p for p in partners if p.get("category") == "fraud"]
+        if fraud_partners:
+            for fp in fraud_partners:
+                st.markdown(f'''
+                <div class="fraud-alert">
+                    <div class="fraud-icon">🚨</div>
+                    <div>
+                        <h4 style="margin:0; color:#c0392b;">Verdächtige Abbuchung erkannt!</h4>
+                        <p style="margin:5px 0;">Die KI hat <strong>{fp["name"]}</strong> ({fp["amount"]}€) als bekannte Abofalle identifiziert. Soll dieser Partner für das neue Konto permanent blockiert werden?</p>
+                        <button style="background:#ff4d4f; color:white; border:none; padding:5px 15px; border-radius:5px; font-weight:bold; cursor:pointer;" disabled>Permanent blockieren (Simulation)</button>
+                    </div>
+                </div>
+                ''', unsafe_allow_html=True)
 
         for i, p in enumerate(partners):
+            if p.get("category") == "fraud":
+                continue # Skip normal card for fraud
             rhythm_label = RHYTHM_LABELS.get(p["rhythm"], p["rhythm"])
             sign = "+" if p["category"] == "gehalt" else ""
             dot_html = conf_dot(p["confidence"])
@@ -821,11 +856,17 @@ def page_step2():
             badge_class = f"risk-badge-{p['_risk_color']}"
             
             tooltip = '<div style="font-size:.7rem;color:#c0392b;margin-top:.2rem;">Wird bevorzugt und zuerst \u00fcbertragen.</div>' if p["_risk_lvl"] == 0 else ''
+            
+            is_canceled = p.get("canceled", False)
+            if is_canceled:
+                risk_class += " canceled-partner"
+                tooltip = '<div class="canceled-badge">Vertrag durch KI gekündigt</div>'
+                p["selected"] = False # force unselect
 
             col_cb, col_info = st.columns([0.05, 0.95])
             with col_cb:
                 sel = st.checkbox("Auswahl", value=p["selected"], key="p_cb_" + str(i),
-                                  label_visibility="collapsed")
+                                  label_visibility="collapsed", disabled=is_canceled)
                 partners[i]["selected"] = sel
             with col_info:
                 st.markdown(
@@ -860,9 +901,14 @@ def page_step2():
                         partners[i]["_risk_color"] = "green"
                         partners[i]["_risk_lvl"] = 2
                         hc3.markdown('<div class="hitl-feedback">✓ KI lernt</div>', unsafe_allow_html=True)
+                    
+                    if not is_canceled and p.get("category") in ["lastschrift", "sonstige"]:
+                        if st.button("🗑️ Vertrag durch KI kündigen", key=f"cancel_{i}"):
+                            partners[i]["canceled"] = True
+                            st.rerun()
 
-        sel_count = sum(1 for p in partners if p["selected"])
-        sel_total = sum(p["amount"] for p in partners if p["selected"] and p["category"] != "gehalt")
+        sel_count = sum(1 for p in partners if p["selected"] and not p.get("canceled", False))
+        sel_total = sum(p["amount"] for p in partners if p["selected"] and p["category"] != "gehalt" and not p.get("canceled", False))
         st.markdown('<div class="info-box"><strong>' + str(sel_count) + ' von ' + str(len(partners)) + '</strong> Zahlungspartnern ausgew\u00e4hlt '
                     '(Ausgaben: <strong>' + format(sel_total, ",.2f") + ' EUR/Monat</strong>)</div>', unsafe_allow_html=True)
 
@@ -962,6 +1008,15 @@ def page_step2():
                         dict(name=ls_name, amount=ls_amount, rhythm=ls_rhythm,
                              category="lastschrift", confidence=0, sepa_ref="MANUELL", selected=True))
                     st.rerun()
+
+        # --- GFS COPILOT ---
+        st.markdown('<div class="chat-container"><h4>💬 GFS AI Copilot</h4>', unsafe_allow_html=True)
+        chat_in = st.chat_input("Frag mich etwas zu deinen Finanzen...")
+        if chat_in:
+            st.chat_message("user").write(chat_in)
+            total_spend = sum(p["amount"] for p in partners if p["category"] != "gehalt" and not p.get("canceled", False) and p.get("category") != "fraud")
+            st.chat_message("assistant").write(f"Basierend auf der aktuellen KI-Analyse belaufen sich deine monatlichen Fixkosten auf ca. **{total_spend:.2f} €**. Dein Eco-Score ist überdurchschnittlich gut. Soll ich weitere Daten analysieren?")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1:

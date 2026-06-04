@@ -477,6 +477,72 @@ div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) button {
     50% { background-color: #f8f8f8; }
     100% { background-color: #eee; }
 }
+/* Next-Gen AI CSS */
+.fraud-alert {
+    background: #fff0f0;
+    border: 2px solid #ff4d4f;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.15);
+    animation: pulse-red 2s infinite;
+}
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 77, 79, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+}
+.fraud-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+.canceled-partner {
+    opacity: 0.5;
+    text-decoration: line-through;
+    background: #fafafa !important;
+    border-color: #eee !important;
+}
+.canceled-badge {
+    color: #e74c3c;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid #e74c3c;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 5px;
+    text-decoration: none !important;
+}
+.eco-card {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 1px solid #a5d6a7;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.eco-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2e7d32;
+}
+.eco-label {
+    font-size: 0.85rem;
+    color: #1b5e20;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+.chat-container {
+    background: #f8f9fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+}
 </style>
 """
 
