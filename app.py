@@ -753,7 +753,13 @@ def page_step2():
         
         st.markdown('<p class="section-heading">KI-vorqualifizierte Zahlungspartner:</p>', unsafe_allow_html=True)
         
-        st.markdown(f'<div style="font-size:.8rem;color:#666;margin-top:1.5rem;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
+        st.markdown('''
+        <div style="background-color:#e6f3ff; border-left:4px solid #1a5c52; padding:10px 15px; border-radius:4px; margin-bottom:15px;">
+            💡 <strong>Tipp:</strong> Sie können das Häkchen (☑️) bei jedem Eintrag anklicken und entfernen, wenn ein Zahlungspartner <strong>nicht</strong> auf das neue Konto übertragen werden soll.
+        </div>
+        ''', unsafe_allow_html=True)
+        
+        st.markdown(f'<div style="font-size:.8rem;color:#666;margin-top:0.5rem;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
 
         # --- FRAUD DETECTION ---
         fraud_partners = [p for p in partners if p.get("category") == "fraud"]
@@ -797,10 +803,11 @@ def page_step2():
                 tooltip = '<div class="canceled-badge">Vertrag durch KI gekündigt</div>'
                 p["selected"] = False # force unselect
 
-            col_cb, col_info = st.columns([0.05, 0.95])
+            col_cb, col_info = st.columns([0.15, 0.85])
             with col_cb:
-                sel = st.checkbox("Auswahl", value=p["selected"], key="p_cb_" + str(i),
-                                  label_visibility="collapsed", disabled=is_canceled)
+                sel = st.checkbox("Mitnehmen", value=p["selected"], key="p_cb_" + str(i),
+                                  help="Häkchen entfernen, wenn dieser Partner nicht umgezogen werden soll.",
+                                  disabled=is_canceled)
                 partners[i]["selected"] = sel
             with col_info:
                 st.markdown(
