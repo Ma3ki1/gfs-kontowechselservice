@@ -993,8 +993,10 @@ def page_step2():
         # --- GFS COPILOT ---
 
         st.markdown('<div class="chat-container"><h4>💬 GFS AI Copilot</h4>', unsafe_allow_html=True)
-        chat_in = st.chat_input("Frag mich etwas zu deinen Finanzen...")
-        if chat_in:
+        chat_col1, chat_col2 = st.columns([4, 1])
+        chat_in = chat_col1.text_input("Frage", label_visibility="collapsed", placeholder="Frag mich etwas zu deinen Finanzen...", key="chat_input_field")
+        chat_submit = chat_col2.button("Senden", key="chat_submit")
+        if chat_submit and chat_in:
             st.chat_message("user").write(chat_in)
             total_spend = sum(p["amount"] for p in partners if p["category"] != "gehalt" and not p.get("canceled", False) and p.get("category") != "fraud")
             st.chat_message("assistant").write(f"Basierend auf der aktuellen KI-Analyse belaufen sich deine monatlichen Fixkosten auf ca. **{total_spend:.2f} €**. Dein Eco-Score ist überdurchschnittlich gut. Soll ich weitere Daten analysieren?")
