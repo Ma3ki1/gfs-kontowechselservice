@@ -8,10 +8,11 @@ import streamlit.components.v1 as components
 import pandas as pd
 from datetime import date, timedelta, datetime
 from styles import CSS, CONFETTI_HTML
+import importlib
+import mock_data
+importlib.reload(mock_data)
 from mock_data import (DEMO_CUSTOMER, BANK_SUGGESTIONS, AI_DETECTED_PARTNERS,
                        RHYTHM_LABELS, PERSONAS)
-from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
-import importlib
 import pdf_generator
 importlib.reload(pdf_generator)
 from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
