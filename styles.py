@@ -304,6 +304,101 @@ div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) button {
 .decoder-result strong { color: #1a5c52; }
 .decoder-error { color: #c0392b; font-weight: bold; font-family: 'Courier New', monospace; margin-top: 0.5rem; }
 
+/* Premium Features CSS */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.metric-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a5c52;
+}
+.metric-label {
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.email-simulation {
+    background: #f8f9fa;
+    border: 1px solid #dfe1e5;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 25px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+.email-header {
+    background: #fff;
+    padding: 15px 20px;
+    border-bottom: 1px solid #dfe1e5;
+}
+.email-header-row {
+    display: flex;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+.email-header-label {
+    color: #666;
+    width: 60px;
+    font-weight: 500;
+}
+.email-header-value {
+    color: #202124;
+}
+.email-body {
+    padding: 25px;
+    background: #fff;
+    color: #3c4043;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.email-attachment {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid #dadce0;
+    border-radius: 18px;
+    font-size: 0.85rem;
+    color: #1a73e8;
+    background: #fff;
+    margin-right: 10px;
+    margin-top: 15px;
+    font-weight: 500;
+}
+.interactive-hitl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+}
+.hitl-feedback {
+    font-size: 0.75rem;
+    color: #1a5c52;
+    background: #e8f5e9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    animation: fadeInOut 2s ease-in-out;
+}
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.9); }
+    10% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.7; }
+}
 </style>
 """
 

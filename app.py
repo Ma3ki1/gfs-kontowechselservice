@@ -692,6 +692,27 @@ def page_step2():
     
     if is_berater:
         st.markdown('<div class="consultant-mode"></div><span class="consultant-badge">Berater-Modus &mdash; Intern</span>', unsafe_allow_html=True)
+        
+        # --- CONSULTANT DASHBOARD ---
+        avg_conf = int(sum(p['confidence'] for p in partners) / max(len(partners), 1))
+        auto_rate = int(sum(1 for p in partners if p['confidence'] > 85) / max(len(partners), 1) * 100)
+        st.markdown(f'''
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <div class="metric-value">{len(partners)}</div>
+                <div class="metric-label">Erkannte Partner</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{avg_conf}%</div>
+                <div class="metric-label">Ø KI-Konfidenz</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{auto_rate}%</div>
+                <div class="metric-label">Automatisierbar</div>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+
         st.markdown('<p class="section-heading">Datenansicht (Gefiltert via NLP/BERT Engine):</p>', unsafe_allow_html=True)
         
         df_data = []
@@ -771,6 +792,23 @@ def page_step2():
                     f'<span class="{badge_class}" style="margin-right:.8rem;">{p["_risk_label"]}</span>'
                     f'{dot_html}'
                     '</div>', unsafe_allow_html=True)
+                
+                # --- HUMAN IN THE LOOP (Interactive Feedback) ---
+                with st.expander("⚙️ KI-Entscheidung korrigieren", expanded=False):
+                    hc1, hc2, hc3 = st.columns([2, 2, 1])
+                    new_cat = hc1.selectbox("Kategorie anpassen", ["lastschrift", "dauerauftrag", "gehalt", "sonstige"], 
+                                            index=["lastschrift", "dauerauftrag", "gehalt", "sonstige"].index(p.get("category", "sonstige")), key=f"cat_{i}")
+                    new_rhythm = hc2.selectbox("Turnus anpassen", ["monatlich", "vierteljährlich", "halbjährlich", "jährlich"], 
+                                            index=["monatlich", "vierteljährlich", "halbjährlich", "jährlich"].index(p.get("rhythm", "monatlich")), key=f"rhy_{i}")
+                    
+                    if new_cat != p["category"] or new_rhythm != p["rhythm"]:
+                        partners[i]["category"] = new_cat
+                        partners[i]["rhythm"] = new_rhythm
+                        partners[i]["confidence"] = 100
+                        partners[i]["_risk_label"] = "Manuell verifiziert"
+                        partners[i]["_risk_color"] = "green"
+                        partners[i]["_risk_lvl"] = 2
+                        hc3.markdown('<div class="hitl-feedback">✓ KI lernt</div>', unsafe_allow_html=True)
 
         sel_count = sum(1 for p in partners if p["selected"])
         sel_total = sum(p["amount"] for p in partners if p["selected"] and p["category"] != "gehalt")
@@ -1167,8 +1205,48 @@ def page_step5():
                            file_name="GFS_Kontowechsel_Bestaetigung.pdf", mime="application/pdf", key="s5_pdf_dl")
     except Exception as e:
         st.error("PDF-Generierung fehlgeschlagen: " + str(e))
+        
+    # --- CSV EXPORT ---
+    import pandas as pd
+    df_export = pd.DataFrame([{
+        "Partner": p["name"], "Betrag": p["amount"], "Turnus": p["rhythm"], "Kategorie": p["category"], "Status": "Ausgewählt"
+    } for p in sel_p])
+    csv_bytes = df_export.to_csv(index=False).encode('utf-8')
+    st.download_button("Zahlungspartner als Excel/CSV herunterladen", data=csv_bytes,
+                       file_name="GFS_Zahlungspartner.csv", mime="text/csv", key="s5_csv_dl")
 
     st.button("Zum GFS Online-Banking", disabled=True, help="In der Produktivversion verf\u00fcgbar", key="s5_banking_btn")
+
+    # --- EMAIL SIMULATION ---
+    st.markdown(f'''
+    <div class="email-simulation">
+        <div class="email-header">
+            <div class="email-header-row">
+                <div class="email-header-label">Von:</div>
+                <div class="email-header-value">GFS Kundenservice &lt;service@gfs-se.com&gt;</div>
+            </div>
+            <div class="email-header-row">
+                <div class="email-header-label">An:</div>
+                <div class="email-header-value">{st.session_state.name} &lt;kunde@email.de&gt;</div>
+            </div>
+            <div class="email-header-row" style="margin-top:10px;">
+                <div class="email-header-label">Betreff:</div>
+                <div class="email-header-value" style="font-weight:bold;">Ihr Kontowechsel ist erfolgreich abgeschlossen!</div>
+            </div>
+        </div>
+        <div class="email-body">
+            Guten Tag {st.session_state.name},<br><br>
+            vielen Dank, dass Sie den GFS Kontowechselservice genutzt haben. Wir haben soeben alle {notif_c} ausgewählten Zahlungspartner erfolgreich über Ihre neue IBAN ({st.session_state.iban_neu}) informiert.<br><br>
+            Die formelle Bestätigung sowie das Compliance-Protokoll der KI-Prüfung finden Sie im Anhang dieser E-Mail.<br><br>
+            Willkommen bei Global Finance Solutions SE!<br><br>
+            Mit freundlichen Grüßen,<br>
+            <strong>Ihr GFS Team</strong><br>
+            <br>
+            <div class="email-attachment">📎 GFS_Kontowechsel_Bestaetigung.pdf</div>
+            <div class="email-attachment">📎 GFS_Audit_Trail.pdf</div>
+        </div>
+    </div>
+    ''', unsafe_allow_html=True)
 
     st.markdown("---")
 
