@@ -11,6 +11,10 @@ from styles import CSS, CONFETTI_HTML
 from mock_data import (DEMO_CUSTOMER, BANK_SUGGESTIONS, AI_DETECTED_PARTNERS,
                        RHYTHM_LABELS, PERSONAS)
 from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
+import importlib
+import pdf_generator
+importlib.reload(pdf_generator)
+from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
 
 st.set_page_config(page_title="GFS Kontowechselservice", page_icon="", layout="centered")
 st.markdown(CSS, unsafe_allow_html=True)
@@ -1271,3 +1275,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Force Streamlit reload 1
