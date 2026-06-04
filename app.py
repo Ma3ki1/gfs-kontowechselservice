@@ -685,6 +685,7 @@ def page_step2():
         time.sleep(0.8)
         
         st.session_state.ki_done = True
+        st.session_state.force_scroll_top = True
         st.rerun()
 
     st.markdown('<div class="card"><h3>Schritt 2 &mdash; KI-Analyse der Kontobewegungen <span title="Die GFS KI nutzt Natural Language Processing (NLP), um Freitexte in Kontoauszügen zu verstehen.">ℹ️</span></h3>', unsafe_allow_html=True)
@@ -1121,6 +1122,7 @@ def page_step4():
     if st.button("\u00dcbertragung starten", key="s4_start"):
         _run_simulation()
         st.session_state.sim_done = True
+        st.session_state.force_scroll_top = True
         st.rerun()
 
 def _run_simulation():
@@ -1491,8 +1493,13 @@ def main():
     
     if "previous_step" not in st.session_state:
         st.session_state.previous_step = st.session_state.step
+        st.session_state.force_scroll_top = True
         
     if st.session_state.previous_step != st.session_state.step:
+        st.session_state.force_scroll_top = True
+        st.session_state.previous_step = st.session_state.step
+        
+    if st.session_state.get("force_scroll_top", False):
         components.html("""
         <script>
             function forceScroll() {
@@ -1511,7 +1518,7 @@ def main():
             setTimeout(forceScroll, 500);
         </script>
         """, height=0)
-        st.session_state.previous_step = st.session_state.step
+        st.session_state.force_scroll_top = False
         
     render_header()
     render_timer()
