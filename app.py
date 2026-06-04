@@ -15,6 +15,7 @@ import importlib
 import pdf_generator
 importlib.reload(pdf_generator)
 from pdf_generator import generate_confirmation_pdf, generate_audit_pdf
+import altair as alt
 
 st.set_page_config(page_title="GFS Kontowechselservice", page_icon="", layout="centered")
 st.markdown(CSS, unsafe_allow_html=True)
@@ -319,6 +320,12 @@ def render_footer():
 
 # ── Step 0 ───────────────────────────────────────────────────────────────────
 def page_step0():
+    st.markdown('''
+    <div class="hero-section">
+        <div class="hero-title">Banking, das mitdenkt.</div>
+        <div class="hero-subtitle">Erleben Sie den intelligentesten Kontowechsel Europas. Vollautomatisch, sicher und in Rekordzeit dank der neuen GFS KI-Engine.</div>
+    </div>
+    ''', unsafe_allow_html=True)
     st.markdown('<div class="intro-container">', unsafe_allow_html=True)
     
     col_left, col_right = st.columns(2)
@@ -569,6 +576,17 @@ def page_step1():
     st.markdown('</div>', unsafe_allow_html=True)
 
     ready = all([name.strip(), validate_iban(iban), bank_alt, cb1, cb2, cb3])
+    if ready:
+        st.markdown(f'''
+        <div class="e-signature-box">
+            <div class="seal">✅ Digital signiert via Bank-Ident</div>
+            <div style="font-size:0.85rem; margin-top:5px; color:#666;">
+                Signatur-ID: GFS-SCA-{datetime.now().strftime("%Y%m%d")}-{random.randint(1000, 9999)}<br>
+                Nutzer: {name} (Verified)
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
     if st.button("Weiter", key="s1_next", disabled=not ready):
         st.session_state.step = 2
         st.rerun()
@@ -581,16 +599,20 @@ def page_step2():
 
     if not st.session_state.ki_done:
         ph = st.empty()
-        html_base = '<div class="terminal-box">'
-        diag = '<div class="connection-diagram"><div class="conn-box">[Kunde]</div><div class="conn-line" data-label="TLS 1.3"></div><div class="conn-box" style="background:#1a5c52">[GFS KI-Service]</div><div class="conn-line" data-label="PSD2"></div><div class="conn-box">[Alte Bank]</div></div>'
         
-        st1_html = html_base + '<div class="term-line">Verbindung wird aufgebaut...</div>' + diag
-        ph.markdown(st1_html + '</div>', unsafe_allow_html=True)
-        time.sleep(0.8)
-        
-        st2_html = st1_html + '<div class="term-line"><br/>Authentifizierung l&auml;uft...</div>'
-        ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
-        
+        if is_berater:
+            html_base = '<div class="terminal-box">'
+            diag = '<div class="connection-diagram"><div class="conn-box">[Kunde]</div><div class="conn-line" data-label="TLS 1.3"></div><div class="conn-box" style="background:#1a5c52">[GFS KI-Service]</div><div class="conn-line" data-label="PSD2"></div><div class="conn-box">[Alte Bank]</div></div>'
+            st1_html = html_base + '<div class="term-line">Verbindung wird aufgebaut...</div>' + diag
+            ph.markdown(st1_html + '</div>', unsafe_allow_html=True)
+            time.sleep(0.8)
+            st2_html = st1_html + '<div class="term-line"><br/>Authentifizierung l&auml;uft...</div>'
+            ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
+        else:
+            skeleton_html = '<div style="margin-top:20px;">' + '<div class="skeleton-card"><div class="skeleton-avatar"></div><div style="flex-grow:1;"><div class="skeleton-line-1"></div><div class="skeleton-line-2"></div></div></div>' * 3 + '</div>'
+            ph.markdown('<h4 style="text-align:center; color:#1a5c52; margin-bottom:5px;">Daten werden analysiert...</h4>' + skeleton_html, unsafe_allow_html=True)
+            time.sleep(1.0)
+            
         auth_steps = [
             ("OAuth 2.0 Token angefordert...", "Token erhalten [OK]", "/api/v1/auth"),
             ("Starke Kundenauthentifizierung (SCA)...", "[OK]", "/api/v1/sca"),
@@ -599,46 +621,57 @@ def page_step2():
         
         for step_name, step_ok, endpoint in auth_steps:
             time.sleep(0.3)
-            met_html = f'<span class="term-muted">HTTP 200 OK | {random.randint(45, 120)}ms | {endpoint}</span>' if is_berater else ''
-            st2_html += f'<div class="term-line">- {step_name} &rarr; <span class="term-ok">{step_ok}</span> {met_html}</div>'
-            ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
+            if is_berater:
+                met_html = f'<span class="term-muted">HTTP 200 OK | {random.randint(45, 120)}ms | {endpoint}</span>'
+                st2_html += f'<div class="term-line">- {step_name} &rarr; <span class="term-ok">{step_ok}</span> {met_html}</div>'
+                ph.markdown(st2_html + '</div>', unsafe_allow_html=True)
             
         time.sleep(0.2)
         
-        st3_html = st2_html + '<div class="term-line"><br/>Kontodaten werden abgerufen...<br/>Zeitraum: 24 Monate | Verschl&uuml;sselung: AES-256</div>'
+        if is_berater:
+            st3_html = st2_html + '<div class="term-line"><br/>Kontodaten werden abgerufen...<br/>Zeitraum: 24 Monate | Verschl&uuml;sselung: AES-256</div>'
+        else:
+            skeleton_html = '<div style="margin-top:20px;">' + '<div class="skeleton-card"><div class="skeleton-avatar"></div><div style="flex-grow:1;"><div class="skeleton-line-1" style="width:80%"></div><div class="skeleton-line-2" style="width:50%"></div></div></div>' * 4 + '</div>'
+            ph.markdown('<h4 style="text-align:center; color:#1a5c52; margin-bottom:5px;">KI extrahiert Zahlungspartner...</h4>' + skeleton_html, unsafe_allow_html=True)
+        
         total_tx = random.randint(420, 480)
         curr_tx = 0
         while curr_tx < total_tx:
             curr_tx += random.randint(30, 80)
             if curr_tx > total_tx: curr_tx = total_tx
-            met_html = f'<span class="term-muted">GET /api/v1/transactions?months=24 | {random.randint(110, 320)}ms</span>' if is_berater else ''
-            ph.markdown(st3_html + f'<div class="term-line">Transaktionen geladen: {curr_tx}... {met_html}</div></div>', unsafe_allow_html=True)
+            if is_berater:
+                met_html = f'<span class="term-muted">GET /api/v1/transactions?months=24 | {random.randint(110, 320)}ms</span>'
+                ph.markdown(st3_html + f'<div class="term-line">Transaktionen geladen: {curr_tx}... {met_html}</div></div>', unsafe_allow_html=True)
             time.sleep(0.12)
         
-        st3_html += f'<div class="term-line">Transaktionen geladen: {total_tx}... <span class="term-ok">[OK]</span></div>'
-        time.sleep(0.2)
-        
-        st4_html = st3_html + '<div class="term-line"><br/>KI-Analyse wird gestartet...</div>'
-        ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
-        time.sleep(0.3)
-        
-        tech_stack = [
-            "Modell: GFS-NLP-BERT v2.3.1",
-            "Framework: Python / TensorFlow",
-            "Infrastruktur: Azure Deutschland (Germany West Central)",
-            "Datenhaltung: Ausschlie&szlig;lich EU-Raum"
-        ]
-        for t in tech_stack:
-            st4_html += f'<div class="term-line" style="color:#7ee787">&gt; {t}</div>'
-        
-        st4_html += f'<div class="term-line"><br/><span class="term-ok">Analyse abgeschlossen &mdash; {total_tx} Transaktionen verarbeitet</span></div>'
-        ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
+        if is_berater:
+            st3_html += f'<div class="term-line">Transaktionen geladen: {total_tx}... <span class="term-ok">[OK]</span></div>'
+            time.sleep(0.2)
+            st4_html = st3_html + '<div class="term-line"><br/>KI-Analyse wird gestartet...</div>'
+            ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
+            time.sleep(0.3)
+            
+            tech_stack = [
+                "Modell: GFS-NLP-BERT v2.3.1",
+                "Framework: Python / TensorFlow",
+                "Infrastruktur: Azure Deutschland (Germany West Central)",
+                "Datenhaltung: Ausschlie&szlig;lich EU-Raum"
+            ]
+            for t in tech_stack:
+                st4_html += f'<div class="term-line" style="color:#7ee787">&gt; {t}</div>'
+            
+            st4_html += f'<div class="term-line"><br/><span class="term-ok">Analyse abgeschlossen &mdash; {total_tx} Transaktionen verarbeitet</span></div>'
+            ph.markdown(st4_html + '</div>', unsafe_allow_html=True)
+        else:
+            skeleton_html = '<div style="margin-top:20px;">' + '<div class="skeleton-card"><div class="skeleton-avatar"></div><div style="flex-grow:1;"><div class="skeleton-line-1" style="width:40%"></div><div class="skeleton-line-2" style="width:70%"></div></div></div>' * 5 + '</div>'
+            ph.markdown('<h4 style="text-align:center; color:#2ecc71; margin-bottom:5px;">Abschließende Validierung...</h4>' + skeleton_html, unsafe_allow_html=True)
+
         time.sleep(0.8)
         
         st.session_state.ki_done = True
         st.rerun()
 
-    st.markdown('<div class="card"><h3>Schritt 2 &mdash; KI-Analyse der Kontobewegungen</h3>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><h3>Schritt 2 &mdash; KI-Analyse der Kontobewegungen <span title="Die GFS KI nutzt Natural Language Processing (NLP), um Freitexte in Kontoauszügen zu verstehen.">ℹ️</span></h3>', unsafe_allow_html=True)
     st.markdown("""<div class="info-box">Durchschnittlicher Kunde hat 23 Zahlungspartner &mdash;
         kennt aber nur 12-15 bewusst. Unsere KI erkennt alle.</div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -764,6 +797,19 @@ def page_step2():
         c_grn = sum(1 for p in partners if p["_risk_lvl"] == 2)
         
         st.markdown('<p class="section-heading">Automatisch erkannte Zahlungspartner:</p>', unsafe_allow_html=True)
+        
+        # --- ALTAIR DONUT CHART ---
+        import pandas as pd
+        df_chart = pd.DataFrame([{"Kategorie": p["category"].title(), "Betrag": p["amount"]} for p in partners if p["category"] != "gehalt"])
+        if not df_chart.empty:
+            df_grouped = df_chart.groupby("Kategorie").sum().reset_index()
+            chart = alt.Chart(df_grouped).mark_arc(innerRadius=50).encode(
+                theta=alt.Theta(field="Betrag", type="quantitative"),
+                color=alt.Color(field="Kategorie", type="nominal", scale=alt.Scale(scheme='teals')),
+                tooltip=['Kategorie', 'Betrag']
+            ).properties(height=250, title="Ihre monatlichen Ausgaben")
+            st.altair_chart(chart, use_container_width=True)
+
         st.markdown(f'<div style="font-size:.8rem;color:#666;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
 
         for i, p in enumerate(partners):

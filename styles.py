@@ -399,6 +399,84 @@ div[data-testid="stVerticalBlock"]:has(.chat-marker.chat-closed) button {
     80% { opacity: 1; transform: scale(1); }
     100% { opacity: 0.7; }
 }
+/* Premium Visuals CSS */
+.hero-section {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: linear-gradient(180deg, #f0f7f6 0%, #ffffff 100%);
+    border-radius: 16px;
+    margin-bottom: 30px;
+    border: 1px solid #e8f0ef;
+}
+.hero-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+}
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto 30px;
+    line-height: 1.5;
+}
+.e-signature-box {
+    background: #fdfdfd;
+    border: 1px dashed #1a5c52;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    color: #1a5c52;
+}
+.e-signature-box .seal {
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.skeleton-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.skeleton-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #eee;
+    animation: shimmer 1.5s infinite linear;
+}
+.skeleton-line-1 {
+    width: 60%;
+    height: 14px;
+    background: #eee;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    animation: shimmer 1.5s infinite linear;
+}
+.skeleton-line-2 {
+    width: 40%;
+    height: 12px;
+    background: #eee;
+    border-radius: 4px;
+    animation: shimmer 1.5s infinite linear;
+}
+@keyframes shimmer {
+    0% { background-color: #eee; }
+    50% { background-color: #f8f8f8; }
+    100% { background-color: #eee; }
+}
 </style>
 """
 
