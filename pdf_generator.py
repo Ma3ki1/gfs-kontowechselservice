@@ -89,7 +89,7 @@ def _header_table(title, subtitle):
         ('FONTSIZE', (1,1), (1,1), 8),
         ('TEXTCOLOR', (1,1), (1,1), COLOR_TEXT_LIGHT),
         
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
         ('TOPPADDING', (0,0), (-1,-1), 2),
         ('LINEBELOW', (0,1), (-1,1), 1.5, COLOR_PRIMARY),
         ('BOTTOMPADDING', (0,1), (-1,1), 10),
