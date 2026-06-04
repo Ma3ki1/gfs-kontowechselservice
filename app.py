@@ -730,7 +730,7 @@ def page_step2():
         
         # --- CONSULTANT DASHBOARD ---
         avg_conf = int(sum(p['confidence'] for p in partners) / max(len(partners), 1))
-        human_rate = 100 - min(99, int(sum(1 for p in partners if p['confidence'] > 80) / max(len(partners), 1) * 100))
+        auto_rate = min(99, int(sum(1 for p in partners if p['confidence'] > 80) / max(len(partners), 1) * 100))
         st.markdown(f'''
         <div class="dashboard-grid">
             <div class="metric-card">
@@ -742,8 +742,8 @@ def page_step2():
                 <div class="metric-label">Ø KI-Konfidenz</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">{human_rate}%</div>
-                <div class="metric-label">Manuell zu prüfen (HITL)</div>
+                <div class="metric-value">{auto_rate}%</div>
+                <div class="metric-label">Automatisierungsgrad</div>
             </div>
         </div>
         ''', unsafe_allow_html=True)
@@ -1273,11 +1273,11 @@ def page_step5():
                 <div class="lbl" style="color:#27ae60;font-weight:bold;margin-top:.2rem;">Einsparung: 102 &euro;</div>
             </div>""", unsafe_allow_html=True)
         with bc2:
-            human_pct = 100 - min(99, 100 if notif_c == 0 else int((len([p for p in sel_p if p.get("confidence", 0) > 80]) / max(notif_c, 1)) * 100))
+            auto_pct = min(99, 100 if notif_c == 0 else int((len([p for p in sel_p if p.get("confidence", 0) > 80]) / max(notif_c, 1)) * 100))
             st.markdown(f"""<div class="biz-metric">
-                <div class="lbl">Manuelle Prüfung (HITL)</div>
-                <div class="val">{human_pct}%</div>
-                <div class="lbl">Quote der manuellen Freigaben</div>
+                <div class="lbl">Automatisierungsgrad</div>
+                <div class="val">{auto_pct}%</div>
+                <div class="lbl">Automatisierte KI-Freigaben</div>
             </div>""", unsafe_allow_html=True)
         with bc3:
             complexity = "Komplex (30+ Partner)" if len(st.session_state.partners) > 20 else "Standard (10-15 Partner)"

@@ -219,12 +219,12 @@ def generate_audit_pdf(state):
     
     partners = state.get("partners", [])
     sel_count = sum(1 for p in partners if p.get("selected"))
-    human_pct = 100 - min(99, 100 if len(partners) == 0 else int((len([p for p in partners if p.get("confidence", 0) > 80]) / max(len(partners), 1)) * 100))
-    auto_deg = f"{human_pct}%"
+    auto_pct = min(99, 100 if len(partners) == 0 else int((len([p for p in partners if p.get("confidence", 0) > 80]) / max(len(partners), 1)) * 100))
+    auto_deg = f"{auto_pct}%"
     
     meta_data = [
         ['Dauer KI-Analyse', f"{duration} Sekunden", 'KI-Modell', 'GFS-NLP-BERT v2.3'],
-        ['Entscheidungen gesamt', str(len(partners)), 'Manuelle Prüfung (HITL)', auto_deg],
+        ['Entscheidungen gesamt', str(len(partners)), 'Automatisierungsgrad', auto_deg],
         ['Verarbeitungsregion', 'Azure (Germany West Central)', 'Zertifizierung', 'BaFin BAIT, ISO 27001']
     ]
     
