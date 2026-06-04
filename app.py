@@ -799,7 +799,7 @@ def page_step2():
         # --- UNBEKANNTE POSTEN ---
         unbekannt_partners = [p for p in partners if p.get("category") == "unbekannt"]
         if unbekannt_partners:
-            st.markdown('<div class="fraud-alert" style="background-color: #fff3cd; border-left: 4px solid #f39c12;"><div class="fraud-icon">⚠️</div><div><h4 style="margin:0; color:#d35400;">Unbekannte Abbuchung</h4><p style="margin:5px 0;">Die KI konnte einige Abbuchungen nicht eindeutig zuordnen. Bitte überprüfen Sie diese manuell oder tragen Sie sie unten ein.</p></div></div>', unsafe_allow_html=True)
+            st.markdown('<div class="fraud-alert" style="background-color: #fff3cd; border-left: 4px solid #f39c12;"><div class="fraud-icon">⚠️</div><div><h4 style="margin:0; color:#d35400;">Unbekannte Abbuchung</h4><p style="margin:5px 0; color:#333;">Die KI konnte einige Abbuchungen nicht eindeutig zuordnen. Bitte überprüfen Sie diese manuell oder tragen Sie sie unten ein.</p></div></div>', unsafe_allow_html=True)
             for up in unbekannt_partners:
                 st.markdown(f'<div class="cryptic-card" style="border:1px solid #f39c12;"><div class="code">SEPA-Ref: {up["sepa_ref"]}</div><div class="identified">Betrag: {up["amount"]} EUR</div><div class="reason">Status: Konnte nicht verifiziert werden. Bitte unten manuell hinzufügen.</div></div>', unsafe_allow_html=True)
                 up["selected"] = False
