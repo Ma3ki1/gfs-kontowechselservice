@@ -771,28 +771,6 @@ def page_step2():
         sel_count = sum(1 for p in partners if p["selected"])
 
     else:
-        # Cryptic Reveal Expander
-        cryptic_codes = ["PPSPOTIFY", "NF-FLIX", "AMZN PMTS", "APPLE-M", "DISNEY", "LIEFER", "NORDVPN", "HF-BOX"]
-        cryptic_partners = [p for p in partners if p["sepa_ref"] in cryptic_codes]
-        
-        if cryptic_partners:
-            with st.expander("Das h\u00e4tten Sie wahrscheinlich vergessen", expanded=True):
-                st.markdown('<p style="font-size:.85rem;color:#666;margin-bottom:1rem;">Oft \u00fcbersehen wegen kryptischer Abbuchungstexte:</p>', unsafe_allow_html=True)
-                for cp in cryptic_partners[:4]:
-                    st.markdown(f'''
-                    <div class="cryptic-card">
-                        <div class="code">SEPA-Code: {cp["sepa_ref"]}</div>
-                        <div class="identified">Erkannt als: {cp["name"]}</div>
-                        <div class="reason">Warum vergessen? Kryptischer Zahlungscode &mdash; nicht als bekannter Dienst erkennbar.</div>
-                    </div>
-                    ''', unsafe_allow_html=True)
-                st.markdown(f'''
-                <div class="stat-highlight">
-                    <span class="stat-number">27%</span>
-                    <span class="stat-text">Laut unserer Studie vergessen 27% aller Kunden mindestens einen wichtigen Zahlungspartner beim manuellen Wechsel. Unsere KI hat alle <strong>{len(partners)}</strong> Partner f\u00fcr Sie identifiziert.</span>
-                </div>
-                ''', unsafe_allow_html=True)
-
         # Count risks
         c_red = sum(1 for p in partners if p["_risk_lvl"] == 0)
         c_org = sum(1 for p in partners if p["_risk_lvl"] == 1)
@@ -800,35 +778,6 @@ def page_step2():
         
         st.markdown('<p class="section-heading">KI-vorqualifizierte Zahlungspartner:</p>', unsafe_allow_html=True)
         
-        # --- ALTAIR DONUT CHART ---
-        df_chart = pd.DataFrame([{"Kategorie": p["category"].title(), "Betrag": p["amount"]} for p in partners if p["category"] != "gehalt"])
-        if not df_chart.empty:
-            df_grouped = df_chart.groupby("Kategorie").sum().reset_index()
-            chart = alt.Chart(df_grouped).mark_arc(innerRadius=50).encode(
-                theta=alt.Theta(field="Betrag", type="quantitative"),
-                color=alt.Color(field="Kategorie", type="nominal", scale=alt.Scale(scheme='teals')),
-                tooltip=['Kategorie', 'Betrag']
-            ).properties(height=250, title="Ihre monatlichen Ausgaben")
-            st.altair_chart(chart, use_container_width=True)
-
-        # --- ECO SCORE ---
-        st.markdown('<br>', unsafe_allow_html=True)
-        col_eco1, col_eco2 = st.columns([1, 2])
-        with col_eco1:
-            st.markdown('''
-            <div class="eco-card">
-                <div class="eco-value">78/100</div>
-                <div class="eco-label">Eco-Score</div>
-            </div>
-            ''', unsafe_allow_html=True)
-        with col_eco2:
-            st.markdown('<div style="font-size:0.9rem; color:#666; margin-top:5px; margin-bottom:10px;">Basierend auf deinen Zahlungspartnern verursachst du ca. 1.2 Tonnen CO2 pro Jahr.</div>', unsafe_allow_html=True)
-            if st.button("🌿 CO2-Fußabdruck für 2,50€/M kompensieren", key="btn_eco"):
-                st.session_state.manual_partners.append(
-                    dict(name="GFS Climate Offset", amount=2.50, rhythm="monatlich",
-                         category="dauerauftrag", confidence=99, sepa_ref="ECO-OFFSET", selected=True))
-                st.rerun()
-
         st.markdown(f'<div style="font-size:.8rem;color:#666;margin-top:1.5rem;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
 
         # --- FRAUD DETECTION ---
@@ -845,6 +794,15 @@ def page_step2():
                     </div>
                 </div>
                 ''', unsafe_allow_html=True)
+
+
+        # --- UNBEKANNTE POSTEN ---
+        unbekannt_partners = [p for p in partners if p.get("category") == "unbekannt"]
+        if unbekannt_partners:
+            st.markdown('<div class="fraud-alert" style="background-color: #fff3cd; border-left: 4px solid #f39c12;"><div class="fraud-icon">⚠️</div><div><h4 style="margin:0; color:#d35400;">Unbekannte Abbuchung</h4><p style="margin:5px 0;">Die KI konnte einige Abbuchungen nicht eindeutig zuordnen. Bitte überprüfen Sie diese manuell oder tragen Sie sie unten ein.</p></div></div>', unsafe_allow_html=True)
+            for up in unbekannt_partners:
+                st.markdown(f'<div class="cryptic-card" style="border:1px solid #f39c12;"><div class="code">SEPA-Ref: {up["sepa_ref"]}</div><div class="identified">Betrag: {up["amount"]} EUR</div><div class="reason">Status: Konnte nicht verifiziert werden. Bitte unten manuell hinzufügen.</div></div>', unsafe_allow_html=True)
+                up["selected"] = False
 
         for i, p in enumerate(partners):
             if p.get("category") == "fraud":
@@ -976,41 +934,89 @@ def page_step2():
                     if st.button("Zur manuellen Eingabe", key="sepa_scroll_btn"):
                         components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
 
+        # Cryptic Reveal Expander
+        cryptic_codes = ["PPSPOTIFY", "NF-FLIX", "AMZN PMTS", "APPLE-M", "DISNEY", "LIEFER", "NORDVPN", "HF-BOX"]
+        cryptic_partners = [p for p in partners if p["sepa_ref"] in cryptic_codes]
+        
+        if cryptic_partners:
+            with st.expander("Das h\u00e4tten Sie wahrscheinlich vergessen", expanded=True):
+                st.markdown('<p style="font-size:.85rem;color:#666;margin-bottom:1rem;">Oft \u00fcbersehen wegen kryptischer Abbuchungstexte:</p>', unsafe_allow_html=True)
+                for cp in cryptic_partners[:4]:
+                    st.markdown(f'''
+                    <div class="cryptic-card">
+                        <div class="code">SEPA-Code: {cp["sepa_ref"]}</div>
+                        <div class="identified">Erkannt als: {cp["name"]}</div>
+                        <div class="reason">Warum vergessen? Kryptischer Zahlungscode &mdash; nicht als bekannter Dienst erkennbar.</div>
+                    </div>
+                    ''', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="stat-highlight">
+                    <span class="stat-number">27%</span>
+                    <span class="stat-text">Laut unserer Studie vergessen 27% aller Kunden mindestens einen wichtigen Zahlungspartner beim manuellen Wechsel. Unsere KI hat alle <strong>{len(partners)}</strong> Partner f\u00fcr Sie identifiziert.</span>
+                </div>
+                ''', unsafe_allow_html=True)
+
+
+        # --- ALTAIR DONUT CHART ---
+        st.markdown('<br><p class="section-heading">Kosten-Übersicht:</p>', unsafe_allow_html=True)
+        df_chart = pd.DataFrame([{"Kategorie": p["category"].title(), "Betrag": p["amount"]} for p in partners if p["category"] != "gehalt" and p["category"] != "unbekannt" and not p.get("canceled", False)])
+        if not df_chart.empty:
+            df_grouped = df_chart.groupby("Kategorie").sum().reset_index()
+            total_b = df_grouped["Betrag"].sum()
+            df_grouped["Prozent"] = (df_grouped["Betrag"] / total_b * 100).round(1).astype(str) + "%"
+            
+            base = alt.Chart(df_grouped).encode(
+                theta=alt.Theta(field="Betrag", type="quantitative", stack=True),
+                color=alt.Color(field="Kategorie", type="nominal", scale=alt.Scale(scheme='teals'))
+            )
+            pie = base.mark_arc(innerRadius=50)
+            text = base.mark_text(radius=80, size=14, fontWeight="bold", fill="white").encode(text="Prozent")
+            
+            chart = (pie + text).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+
         # Manual add via tabs
-        st.markdown('<p id="manuelle-erfassung" class="section-heading">Zahlungspartner manuell hinzuf\u00fcgen:</p>', unsafe_allow_html=True)
+        st.markdown('<p id="manuelle-erfassung" class="section-heading">Zahlungspartner manuell hinzufügen:</p>', unsafe_allow_html=True)
         tab_da, tab_ls = st.tabs(["Dauerauftrag", "Lastschriftmandate"])
 
         with tab_da:
             with st.form("form_add_da", clear_on_submit=True):
                 da_c1, da_c2 = st.columns(2)
-                da_name = da_c1.text_input("Empf\u00e4nger", key="da_empfaenger_input",
-                                           placeholder="z.B. Hausverwaltung")
-                da_amount = da_c2.number_input("Betrag (EUR)", min_value=0.01,
-                                               value=50.0, step=0.01, key="da_betrag_input")
-                da_rhythm = st.selectbox("Rhythmus", ["monatlich","viertelj\u00e4hrlich","halbj\u00e4hrlich","j\u00e4hrlich"],
-                                        key="da_rhythmus_select")
-                if st.form_submit_button("Hinzuf\u00fcgen", type="primary") and da_name.strip():
-                    st.session_state.manual_partners.append(
-                        dict(name=da_name, amount=da_amount, rhythm=da_rhythm,
-                             category="dauerauftrag", confidence=0, sepa_ref="MANUELL", selected=True))
-                    st.rerun()
+                da_name = da_c1.text_input("Empfänger", key="da_empfaenger_input", placeholder="z.B. Hausverwaltung")
+                da_iban = da_c2.text_input("IBAN", key="da_iban_input", placeholder="DE...")
+                da_c3, da_c4 = st.columns(2)
+                da_zweck = da_c3.text_input("Verwendungszweck", key="da_zweck_input", placeholder="z.B. Miete")
+                da_amount = da_c4.number_input("Betrag (EUR)", min_value=0.01, value=50.0, step=0.01, key="da_betrag_input")
+                da_rhythm = st.selectbox("Rhythmus", ["monatlich","vierteljährlich","halbjährlich","jährlich"], key="da_rhythmus_select")
+                if st.form_submit_button("Hinzufügen", type="primary"):
+                    if da_name.strip() and da_iban.strip():
+                        st.session_state.manual_partners.append(
+                            dict(name=da_name, amount=da_amount, rhythm=da_rhythm,
+                                 category="dauerauftrag", confidence=0, sepa_ref=da_zweck or "MANUELL", selected=True))
+                        st.rerun()
+                    else:
+                        st.error("Bitte Empfänger und IBAN angeben.")
 
         with tab_ls:
             with st.form("form_add_ls", clear_on_submit=True):
                 ls_c1, ls_c2 = st.columns(2)
-                ls_name = ls_c1.text_input("Gl\u00e4ubiger", key="ls_glaeubiger_input",
-                                           placeholder="z.B. Versicherung")
-                ls_amount = ls_c2.number_input("Gesch\u00e4tzter Betrag (EUR)", min_value=0.01,
-                                               value=30.0, step=0.01, key="ls_betrag_input")
-                ls_rhythm = st.selectbox("Rhythmus", ["monatlich","viertelj\u00e4hrlich","halbj\u00e4hrlich","j\u00e4hrlich"],
-                                        key="ls_rhythmus_select")
-                if st.form_submit_button("Hinzuf\u00fcgen", type="primary") and ls_name.strip():
-                    st.session_state.manual_partners.append(
-                        dict(name=ls_name, amount=ls_amount, rhythm=ls_rhythm,
-                             category="lastschrift", confidence=99, sepa_ref="MANUELL", selected=True))
-                    st.rerun()
+                ls_name = ls_c1.text_input("Gläubiger", key="ls_glaeubiger_input", placeholder="z.B. Versicherung")
+                ls_iban = ls_c2.text_input("Gläubiger-ID / IBAN", key="ls_iban_input", placeholder="DE...")
+                ls_c3, ls_c4 = st.columns(2)
+                ls_zweck = ls_c3.text_input("Mandatsreferenz / Zweck", key="ls_zweck_input", placeholder="z.B. Kundennummer")
+                ls_amount = ls_c4.number_input("Geschätzter Betrag (EUR)", min_value=0.01, value=30.0, step=0.01, key="ls_betrag_input")
+                ls_rhythm = st.selectbox("Rhythmus", ["monatlich","vierteljährlich","halbjährlich","jährlich"], key="ls_rhythmus_select")
+                if st.form_submit_button("Hinzufügen", type="primary"):
+                    if ls_name.strip() and ls_iban.strip():
+                        st.session_state.manual_partners.append(
+                            dict(name=ls_name, amount=ls_amount, rhythm=ls_rhythm,
+                                 category="lastschrift", confidence=99, sepa_ref=ls_zweck or "MANUELL", selected=True))
+                        st.rerun()
+                    else:
+                        st.error("Bitte Gläubiger und IBAN angeben.")
 
         # --- GFS COPILOT ---
+
         st.markdown('<div class="chat-container"><h4>💬 GFS AI Copilot</h4>', unsafe_allow_html=True)
         chat_in = st.chat_input("Frag mich etwas zu deinen Finanzen...")
         if chat_in:
@@ -1295,6 +1301,24 @@ def page_step5():
         except Exception as e:
             st.error("Audit-PDF Generierung fehlgeschlagen: " + str(e))
 
+    st.markdown("---")
+
+    # --- ECO SCORE ---
+    st.markdown('<br>', unsafe_allow_html=True)
+    col_eco1, col_eco2 = st.columns([1, 2])
+    with col_eco1:
+        st.markdown('''
+        <div class="eco-card">
+            <div class="eco-value">78/100</div>
+            <div class="eco-label">Eco-Score</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    with col_eco2:
+        st.markdown('<div style="font-size:0.9rem; color:#666; margin-top:5px; margin-bottom:10px;">Basierend auf deinen Zahlungspartnern verursachst du ca. 1.2 Tonnen CO2 pro Jahr.</div>', unsafe_allow_html=True)
+        if st.button("🌿 CO2-Fußabdruck für 2,50€/M kompensieren", key="btn_eco_s5"):
+            # Instead of adding a partner, just show a success message since the account switch is already done.
+            st.success("Danke! Wir haben die Kompensation von 2,50€ monatlich für Ihr neues GFS Premium-Konto vorgemerkt.")
+    
     st.markdown("---")
 
     pdf_state = {
