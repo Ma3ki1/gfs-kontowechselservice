@@ -680,46 +680,6 @@ def page_step2():
 
     partners = st.session_state.partners
 
-    # Vergessen-Warnung
-    if not is_berater and not st.session_state.warning_dismissed:
-        missing_insurance = not any(c in p["name"].lower() or c in p["category"].lower() for p in partners for c in ["versicherung", "haftpflicht", "kfz", "aok", "allianz", "huk"])
-        missing_streaming = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["netflix", "spotify", "disney", "prime", "apple"])
-        missing_utility = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["strom", "gas", "stadtwerke", "e.on", "swm"])
-        missing_miete = not any("miete" in p["name"].lower() or "miete" in p["sepa_ref"].lower() for p in partners)
-
-        if st.session_state.active_persona == "gabi" and missing_miete:
-            st.markdown('<div class="gabi-warning">Achtung: Keine Mietzahlung erkannt.<br/>Falls Sie zur Miete wohnen, ist dies Ihre kritischste Zahlung &mdash; bitte f&uuml;gen Sie diese manuell hinzu.</div>', unsafe_allow_html=True)
-        elif len(partners) < 8 or missing_insurance or missing_streaming or missing_utility:
-            warning_html = '<div class="completeness-warning"><strong>Vollst&auml;ndigkeitspr&uuml;fung &mdash; Bitte pr&uuml;fen</strong><br/><br/>'
-            if len(partners) < 8:
-                warning_html += f'Bei Ihrem Profil wurden {len(partners)} Zahlungspartner erkannt. Der durchschnittliche Kunde hat 23 Partner.<br/>Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
-            else:
-                warning_html += 'Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
-            warning_html += '</div>'
-            st.markdown(warning_html, unsafe_allow_html=True)
-            
-            st.write("Häufig vergessene Kategorien:")
-            if missing_insurance or len(partners) < 8:
-                if st.checkbox("Versicherungen (Haftpflicht, Hausrat, KFZ)", key="w_ins"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-            if missing_streaming or len(partners) < 8:
-                if st.checkbox("Streaming-Dienste (Netflix, Spotify, Disney+)", key="w_str"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-            if missing_utility or len(partners) < 8:
-                if st.checkbox("Strom / Gas / Stadtwerke", key="w_util"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-            if len(partners) < 8:
-                if st.checkbox("Fitness / Sport-Abonnements", key="w_fit"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-                if st.checkbox("Zeitschriften / digitale Abonnements", key="w_zeit"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-                if st.checkbox("Sparpläne oder Wertpapierdepot", key="w_spar"):
-                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
-
-            if st.button("Alles vollständig — weiter", key="w_dismiss"):
-                st.session_state.warning_dismissed = True
-                st.rerun()
-
     # Enrich and sort partners by risk
     for p in partners:
         p["_risk_lvl"], p["_risk_label"], p["_risk_color"] = get_risk_level(p)
@@ -1025,6 +985,46 @@ def page_step2():
             st.chat_message("assistant").write(f"Basierend auf der aktuellen KI-Analyse belaufen sich deine monatlichen Fixkosten auf ca. **{total_spend:.2f} €**. Dein Eco-Score ist überdurchschnittlich gut. Soll ich weitere Daten analysieren?")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # Vergessen-Warnung
+    if not is_berater and not st.session_state.warning_dismissed:
+        missing_insurance = not any(c in p["name"].lower() or c in p["category"].lower() for p in partners for c in ["versicherung", "haftpflicht", "kfz", "aok", "allianz", "huk"])
+        missing_streaming = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["netflix", "spotify", "disney", "prime", "apple"])
+        missing_utility = not any(c in p["name"].lower() or c in p["sepa_ref"].lower() for p in partners for c in ["strom", "gas", "stadtwerke", "e.on", "swm"])
+        missing_miete = not any("miete" in p["name"].lower() or "miete" in p["sepa_ref"].lower() for p in partners)
+    
+        if st.session_state.active_persona == "gabi" and missing_miete:
+            st.markdown('<div class="gabi-warning">Achtung: Keine Mietzahlung erkannt.<br/>Falls Sie zur Miete wohnen, ist dies Ihre kritischste Zahlung &mdash; bitte f&uuml;gen Sie diese manuell hinzu.</div>', unsafe_allow_html=True)
+        elif len(partners) < 8 or missing_insurance or missing_streaming or missing_utility:
+            warning_html = '<div class="completeness-warning"><strong>Vollst&auml;ndigkeitspr&uuml;fung &mdash; Bitte pr&uuml;fen</strong><br/><br/>'
+            if len(partners) < 8:
+                warning_html += f'Bei Ihrem Profil wurden {len(partners)} Zahlungspartner erkannt. Der durchschnittliche Kunde hat 23 Partner.<br/>Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
+            else:
+                warning_html += 'Haben Sie m&ouml;glicherweise folgende vergessen?<br/>'
+            warning_html += '</div>'
+            st.markdown(warning_html, unsafe_allow_html=True)
+            
+            st.write("Häufig vergessene Kategorien:")
+            if missing_insurance or len(partners) < 8:
+                if st.checkbox("Versicherungen (Haftpflicht, Hausrat, KFZ)", key="w_ins"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if missing_streaming or len(partners) < 8:
+                if st.checkbox("Streaming-Dienste (Netflix, Spotify, Disney+)", key="w_str"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if missing_utility or len(partners) < 8:
+                if st.checkbox("Strom / Gas / Stadtwerke", key="w_util"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+            if len(partners) < 8:
+                if st.checkbox("Fitness / Sport-Abonnements", key="w_fit"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+                if st.checkbox("Zeitschriften / digitale Abonnements", key="w_zeit"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+                if st.checkbox("Sparpläne oder Wertpapierdepot", key="w_spar"):
+                    components.html("<script>window.parent.location.hash='#manuelle-erfassung';</script>", height=0)
+    
+            if st.button("Alles vollständig — weiter", key="w_dismiss"):
+                st.session_state.warning_dismissed = True
+                st.rerun()
+
     c1, c2 = st.columns(2)
     with c1:
         if st.button("Zur\u00fcck", key="s2_back"):
@@ -1068,6 +1068,7 @@ def page_step3():
     st.markdown('<div class="card"><h3>Was wird \u00fcbertragen?</h3>'
         '<p style="color:#1a1a2e;">' + str(da_count) + ' Dauerauftr\u00e4ge &middot; ' + str(ls_count) + ' Lastschriftmandate'
         + gehalt_text + '</p></div>', unsafe_allow_html=True)
+
 
     c1, c2 = st.columns(2)
     with c1:
