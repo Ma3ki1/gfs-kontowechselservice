@@ -324,7 +324,7 @@ def page_step0():
     st.markdown('''
     <div class="hero-section">
         <div class="hero-title">Banking, das mitdenkt.</div>
-        <div class="hero-subtitle">Erleben Sie den intelligentesten Kontowechsel Europas. Vollautomatisch, sicher und in Rekordzeit dank der neuen GFS KI-Engine.</div>
+        <div class="hero-subtitle">Erleben Sie den intelligentesten Kontowechsel Europas. KI-gestützt, sicher und in Rekordzeit dank der neuen GFS KI-Engine. Mit voller menschlicher Kontrolle.</div>
     </div>
     ''', unsafe_allow_html=True)
     st.markdown('<div class="intro-container">', unsafe_allow_html=True)
@@ -729,7 +729,7 @@ def page_step2():
         
         # --- CONSULTANT DASHBOARD ---
         avg_conf = int(sum(p['confidence'] for p in partners) / max(len(partners), 1))
-        auto_rate = int(sum(1 for p in partners if p['confidence'] > 85) / max(len(partners), 1) * 100)
+        auto_rate = min(99, int(sum(1 for p in partners if p['confidence'] > 85) / max(len(partners), 1) * 100))
         st.markdown(f'''
         <div class="dashboard-grid">
             <div class="metric-card">
@@ -742,7 +742,7 @@ def page_step2():
             </div>
             <div class="metric-card">
                 <div class="metric-value">{auto_rate}%</div>
-                <div class="metric-label">Automatisierbar</div>
+                <div class="metric-label">KI-Vorqualifiziert</div>
             </div>
         </div>
         ''', unsafe_allow_html=True)
@@ -825,7 +825,7 @@ def page_step2():
             if st.button("🌿 CO2-Fußabdruck für 2,50€/M kompensieren", key="btn_eco"):
                 st.session_state.manual_partners.append(
                     dict(name="GFS Climate Offset", amount=2.50, rhythm="monatlich",
-                         category="dauerauftrag", confidence=100, sepa_ref="ECO-OFFSET", selected=True))
+                         category="dauerauftrag", confidence=99, sepa_ref="ECO-OFFSET", selected=True))
                 st.rerun()
 
         st.markdown(f'<div style="font-size:.8rem;color:#666;margin-top:1.5rem;margin-bottom:1rem;">Erkannt: {c_red} kritische, {c_org} wichtige, {c_grn} unkritische Zahlungspartner</div>', unsafe_allow_html=True)
@@ -896,7 +896,7 @@ def page_step2():
                     if new_cat != p["category"] or new_rhythm != p["rhythm"]:
                         partners[i]["category"] = new_cat
                         partners[i]["rhythm"] = new_rhythm
-                        partners[i]["confidence"] = 100
+                        partners[i]["confidence"] = 99
                         partners[i]["_risk_label"] = "Manuell verifiziert"
                         partners[i]["_risk_color"] = "green"
                         partners[i]["_risk_lvl"] = 2
@@ -977,7 +977,7 @@ def page_step2():
 
         # Manual add via tabs
         st.markdown('<p id="manuelle-erfassung" class="section-heading">Zahlungspartner manuell hinzuf\u00fcgen:</p>', unsafe_allow_html=True)
-        tab_da, tab_ls = st.tabs(["Dauerauftrag", "Lastschriftmandat"])
+        tab_da, tab_ls = st.tabs(["Dauerauftrag", "Lastschriftmandate"])
 
         with tab_da:
             with st.form("form_add_da", clear_on_submit=True):
@@ -1006,7 +1006,7 @@ def page_step2():
                 if st.form_submit_button("Hinzuf\u00fcgen", type="primary") and ls_name.strip():
                     st.session_state.manual_partners.append(
                         dict(name=ls_name, amount=ls_amount, rhythm=ls_rhythm,
-                             category="lastschrift", confidence=0, sepa_ref="MANUELL", selected=True))
+                             category="lastschrift", confidence=99, sepa_ref="MANUELL", selected=True))
                     st.rerun()
 
         # --- GFS COPILOT ---
@@ -1272,7 +1272,7 @@ def page_step5():
                 <div class="lbl" style="color:#27ae60;font-weight:bold;margin-top:.2rem;">Einsparung: 102 &euro;</div>
             </div>""", unsafe_allow_html=True)
         with bc2:
-            auto_pct = 100 if notif_c == 0 else int((len([p for p in sel_p if p.get("confidence", 0) > 0]) / notif_c) * 100)
+            auto_pct = min(99, 100 if notif_c == 0 else int((len([p for p in sel_p if p.get("confidence", 0) > 0]) / notif_c) * 100))
             st.markdown(f"""<div class="biz-metric">
                 <div class="lbl">Automatisierungsgrad</div>
                 <div class="val">{auto_pct}%</div>
